@@ -115,13 +115,15 @@ void Genome::RemoveSharedObject(int shmID, void * * ptr, key_t shmKey)
             exitWithError(errOut.str(),std::cerr, P->inOut->logMain, EXIT_CODE_SHM, *P);
         }
     }
-
-    int ret = shm_unlink(Genome::GetPosixObjectKey(shmKey));
-    if (ret == -1)
-    {
-        ostringstream errOut;
-        errOut <<"EXITING because of FATAL ERROR:  could not delete the shared object: " << strerror(errno) <<flush;
-        exitWithError(errOut.str(),std::cerr, P->inOut->logMain, EXIT_CODE_SHM, *P);
+    
+    if ((int) shmKey != 0){
+        int ret = shm_unlink(Genome::GetPosixObjectKey(shmKey));
+        if (ret == -1)
+        {
+            ostringstream errOut;
+            errOut <<"EXITING because of FATAL ERROR:  could not delete the shared object: " << strerror(errno) <<flush;
+            exitWithError(errOut.str(),std::cerr, P->inOut->logMain, EXIT_CODE_SHM, *P);
+        }
     }
 
     #else
@@ -165,7 +167,7 @@ void * Genome::MapSharedObjectToMemory(int shmID)
         errOut << "EXITING because of FATAL ERROR: could not map the shared object to memory: " << strerror(errno) << "\n" <<flush;     
         exitWithError(errOut.str(),std::cerr, P->inOut->logMain, EXIT_CODE_SHM, *P);
     }
-
+    msync(ret, buf.st_size, MS_INVALIDATE);
     #else
     ret= shmat(shmID, NULL, 0);
     if (ret==((void *) -1)) {
@@ -385,7 +387,7 @@ void Genome::genomeLoad(){//allocate and load Genome
         if (P->genomeLoad=="LoadAndRemove") {//mark genome for removal after the jobs complete
             P->inOut->logMain <<"Removing shared memory segment."<<endl;
             void * ptr = NULL;
-            Genome::RemoveSharedObject(shmID, &ptr, shmKey);
+            Genome::RemoveSharedObject(shmID, &ptr, 0);
         }; 
     };
 
