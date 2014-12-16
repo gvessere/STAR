@@ -11,7 +11,7 @@ OBJECTS = PackedArray.o SuffixArrayFuns.o STAR.o Parameters.o InOutStreams.o Seq
 	TimeFunctions.o ErrorWarning.o loadGTF.o streamFuns.o stringSubstituteAll.o
 
 SOURCES=$(wildcard *.cpp)
-LDFLAGS := -pthread
+LDFLAGS := -pthread -lrt
 LDFLAGS_static := -static -static-libgcc -pthread
 LDFLAGS_GDB := -pthread
 SVNDEF := -D'SVN_VERSION_COMPILED="STAR_2.3.1s_r366"'
@@ -49,6 +49,10 @@ parametersDefault.xxd: parametersDefault
 STAR : CCFLAGS=$(CCFLAGS_MAIN)
 STAR : Depend.list parametersDefault.xxd $(OBJECTS)
 	g++ -o STAR $(CCFLAGS) $(LDFLAGS) $(OBJECTS)
+
+POSIXSHARED : CCFLAGS=$(CCFLAGS_MAIN) -DPOSIX_SHARED_MEM
+POSIXSHARED : Depend.list parametersDefault.xxd $(OBJECTS)
+	g++ -o STAR $(CCFLAGS) $(OBJECTS) $(LDFLAGS)
 
 STARstatic : CCFLAGS=$(CCFLAGS_MAIN)
 STARstatic : Depend.list parametersDefault.xxd $(OBJECTS)

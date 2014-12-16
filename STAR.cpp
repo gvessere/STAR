@@ -36,8 +36,8 @@ int main(int argInN, char* argIn[]) {
         exit(1);
     };
     
-    Genome mainGenome;
-    mainGenome.genomeLoad(P);
+    Genome mainGenome(P);
+    mainGenome.genomeLoad();
     //calculate genome-related parameters
     P->winBinN = P->nGenome/(1LLU << P->winBinNbits)+1;
 
