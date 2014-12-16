@@ -106,6 +106,14 @@ void Genome::RemoveSharedObject(int shmID, void * * ptr, key_t shmKey)
             errOut <<"EXITING because of FATAL ERROR:  could not delete the shared object: " << strerror(errno) <<flush;
             exitWithError(errOut.str(),std::cerr, P->inOut->logMain, EXIT_CODE_SHM, *P);
         }
+
+        int err = close(shmID);
+        if (err == -1)
+        {
+            ostringstream errOut;
+            errOut << "EXITING because of FATAL ERROR: could not close the shared memory object: " << strerror(errno) << "\n" <<flush;     
+            exitWithError(errOut.str(),std::cerr, P->inOut->logMain, EXIT_CODE_SHM, *P);
+        }
     }
 
     int ret = shm_unlink(Genome::GetPosixObjectKey(shmKey));
@@ -155,13 +163,6 @@ void * Genome::MapSharedObjectToMemory(int shmID)
     {
         ostringstream errOut;
         errOut << "EXITING because of FATAL ERROR: could not map the shared object to memory: " << strerror(errno) << "\n" <<flush;     
-        exitWithError(errOut.str(),std::cerr, P->inOut->logMain, EXIT_CODE_SHM, *P);
-    }
-    int err = close(shmID);
-    if (err == -1)
-    {
-        ostringstream errOut;
-        errOut << "EXITING because of FATAL ERROR: could not close the shared memory object: " << strerror(errno) << "\n" <<flush;     
         exitWithError(errOut.str(),std::cerr, P->inOut->logMain, EXIT_CODE_SHM, *P);
     }
 
@@ -383,7 +384,8 @@ void Genome::genomeLoad(){//allocate and load Genome
         
         if (P->genomeLoad=="LoadAndRemove") {//mark genome for removal after the jobs complete
             P->inOut->logMain <<"Removing shared memory segment."<<endl;
-            Genome::RemoveSharedObject(shmID, (void**)&shmStart, shmKey);
+            void * ptr = NULL;
+            Genome::RemoveSharedObject(shmID, &ptr, shmKey);
         }; 
     };
 
