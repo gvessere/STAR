@@ -3,7 +3,7 @@
 #include "Transcript.h"
 #include "ReadAlign.h"
 
-ReadAlign::ReadAlign (Parameters* P, Genome &genomeIn) {//allocate arrays
+ReadAlign::ReadAlign (Parameters* Pin, Genome &genomeIn):P(Pin) {//allocate arrays
 
     G=genomeIn.G;
     SA=genomeIn.SA;
