@@ -16,47 +16,6 @@ R=R+rStart;
 Q=Q+rStart;
 G=G+gStart;
 
-if (pMMmax<0) {//end to end extension
-
-    int iExt;
-    for (iExt=0;iExt<(int) L;iExt++) {
-        iS=dR*iExt;
-        iG=dG*iExt;
-
-        if (G[iG]==5) {//prohibit extension through chr boundary
-//             trA->extendL=0;
-//             trA->maxScore=-999999999;
-//             trA->nMatch=0;
-//             trA->nMM=nMMmax+1;            
-//             return true; 
-            return false;
-        };
-        if (R[iS]==MARK_FRAG_SPACER_BASE) break; //no extension through the spacer between fragments
-
-        if (R[iS]>3 || G[iG]>3) continue;//no penalties for Ns in reads or genome
-
-        if (G[iG]==R[iS]) {//Match
-            nMatch++;
-            Score += int(Q[iS]);
-        } else {
-            nMM++;
-            Score -= int(Q[iS]);
-        };
-    };
-
-    if (iExt>0) {
-        trA->extendL=iExt;
-        trA->maxScore=Score;
-        trA->nMatch=nMatch;
-        trA->nMM=nMM;
-        return true;    
-    } else {
-        return false;
-    };
-
-};
-
-
 for (int i=0;i<(int) L;i++) {
     iS=dR*i;
     iG=dG*i;

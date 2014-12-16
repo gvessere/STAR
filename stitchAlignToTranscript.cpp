@@ -324,7 +324,7 @@ intScore stitchAlignToTranscript(uint rAend, uint gAend, uint rBstart, uint gBst
             } else {//stitching was not accepted
                 Score=-2;
             };
-        } else if (gBstart+trA->exons[0][EX_R] >= trA->exons[0][EX_G] || trA->exons[0][EX_G] < trA->exons[0][EX_R]){//if (iFragA==iFragB) stitch aligns from different fragments
+        } else if (gBstart>=trA->exons[0][EX_G]-trA->exons[0][EX_R]){//if (iFragA==iFragB) stitch aligns from different fragments
 
             if (P->alignMatesGapMax>0 && gBstart > trA->exons[trA->nExons-1][EX_G] + trA->exons[trA->nExons-1][EX_L] + P->alignMatesGapMax) {
                 return -100004; //gap between mates too large
@@ -346,7 +346,7 @@ intScore stitchAlignToTranscript(uint rAend, uint gAend, uint rBstart, uint gBst
 
             
             trExtend.reset();
-            if ( extendAlign(R, Q, G, rAend+1, gAend+1, 1, 1, DEF_readSeqLengthMax, trA->nMatch, trA->nMM, P->outFilterMismatchNmax, P->outFilterMismatchNoverLmax1, &trExtend) ) {
+            if ( extendAlign(R, Q, G, rAend+1, gAend+1, 1, 1, DEF_readSeqLengthMax, trA->nMatch, trA->nMM, P->outFilterMismatchNmax, P->outFilterMismatchNoverLmax, &trExtend) ) {
 
                 trA->add(&trExtend);
                 Score += trExtend.maxScore;
@@ -360,7 +360,7 @@ intScore stitchAlignToTranscript(uint rAend, uint gAend, uint rBstart, uint gBst
             trA->nMatch += L;
 
             trExtend.reset();
-            if ( extendAlign(R, Q, G, rBstart-1, gBstart-1, -1, -1, gBstart-trA->exons[0][EX_G]+trA->exons[0][EX_R], trA->nMatch, trA->nMM, P->outFilterMismatchNmax, P->outFilterMismatchNoverLmax1, &trExtend) ) {
+            if ( extendAlign(R, Q, G, rBstart-1, gBstart-1, -1, -1, gBstart-trA->exons[0][EX_G]+trA->exons[0][EX_R], trA->nMatch, trA->nMM, P->outFilterMismatchNmax, P->outFilterMismatchNoverLmax, &trExtend) ) {
 
                 trA->add(&trExtend);
                 Score += trExtend.maxScore;               

@@ -21,9 +21,6 @@
 #include <stdint.h>
 #include <omp.h>
 
-//external libs
-#define SAMTOOLS_BGZF_H "samtools/bgzf.h"
-
 using namespace std;
 
 #ifdef COMPILE_FOR_MAC
@@ -51,38 +48,6 @@ typedef uint8_t uint8;
 #define intScore int
 
 //cleaned
-//output
-#define BAMoutput_oneAlignMaxBytes 100000
-
-
-//SAM attributes
-#define ATTR_Nmax 9
-#define ATTR_NH 1
-#define ATTR_HI 2
-#define ATTR_AS 3
-#define ATTR_NM 4
-#define ATTR_MD 5
-#define ATTR_nM 6
-#define ATTR_jM 7
-#define ATTR_jI 8
-#define ATTR_XS 9
-#define ATTR_RG 10
-
-
-//BAM definitions
-#define BAM_CIGAR_MaxSize 10000
-#define BAM_CIGAR_OperationShift 4
-#define BAM_CIGAR_M 0
-#define BAM_CIGAR_I 1
-#define BAM_CIGAR_D 2
-#define BAM_CIGAR_N 3
-#define BAM_CIGAR_S 4
-#define BAM_CIGAR_H 5
-#define BAM_CIGAR_P 6
-#define BAM_CIGAR_EQ 7
-#define BAM_CIGAR_X 8
-
-#define BAM_ATTR_MaxSize 1000
 
 #if defined COMPILE_FOR_LONG_READS
     #define MAX_N_EXONS 200

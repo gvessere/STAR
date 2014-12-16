@@ -94,16 +94,9 @@ limitOutSJoneRead                    1000
 limitOutSJcollapsed                  1000000
     int>0: max number of collapsed junctions
 
-limitBAMsortRAM                         0
-    int>=0: maximum available RAM for sorting BAM. If =0, it will be set to the genome index size
-
 ### OUTPUT: GENERAL
 outFileNamePrefix               ./
     string: output files name prefix (including full or relative path). Can only be defined on the command line.
-
-outTmpDir                       -
-    string: path to a directory that will be used as temporary by STAR. All contents of this directory will be removed!
-            - the temp directory will default to outFileNamePrefix_tmp
 
 outStd                          Log
     string: which output will be directed to stdout (standard out)
@@ -119,31 +112,19 @@ outQSconversionAdd              0
    int: add this number to the quality score (e.g. to convert from Illumina to Sanger, use -31)
 
 
-### OUTPUT: SAM/BAM
-outSAMtype                      SAM
-    strings: type of SAM/BAM output
-                                1st word: 
-                                BAM : output BAM without sorting
-                                SAM : output SAM without sorting
-                                None : no SAM/BAM output
-                                2nd, 3rd ...
-                                Unsorted : standard unsorted
-                                SortedByCoordinate : sorted by coordinate
-
+### OUTPUT: SAM
 outSAMmode                      Full
     string: mode of SAM output  None : no SAM output
                                 Full : full SAM output
-                                NoQS : full SAM but without quality scores
 
 outSAMstrandField                               None
     string: Cufflinks-like strand field flag    None        : not used
                                                 intronMotif : strand derived from the intron motif. Reads with inconsistent and/or non-canonical introns are filtered out.
 
 outSAMattributes                Standard
-    string: a string of desired SAM attributes, in the order desired for the output SAM
-                                NH HI AS nM NM MD jM jI XS
-                                Standard    : NH HI AS nM 
-                                All         : NH HI AS nM NM MD jM jI
+    string: which SAM attributes to output?
+                                Standard    : NH, HI, AS, nM attributes
+                                All
                                 None
 
 outSAMunmapped                  None
@@ -160,39 +141,6 @@ outSAMprimaryFlag		OneBestScore
     string: which alignments are considered primary - all others will be marked with 0x100 bit in the FLAG
                                 OneBestScore  : only one alignment with the best score is primary
                                 AllBestScore  : all alignments with the best score are primary
-
-outSAMreadID			Standard
-    string: read ID record type
-                                Standard  : first word (until space) from the FASTx read ID line, removing /1,/2 from the end
-                                Number    : read number (index) in the FASTx file
-
-outSAMmapqUnique        255
-    int: 0 to 255: the MAPQ value for unique mappers
-
-outSAMattrRGline        -
-    string: SAM/BAM read group line. The first word contains the read group identifier and must start with "ID:", e.g. --outSAMattrRG ID:xxx CN:yy "DS:z z z". 
-            xxx will be added as RG tag to each output alignment. Any spaces in the tag values have to be double quoted.
-
-outSAMheaderHD          -
-    strings: @HD (header) line of the SAM header
-
-outSAMheaderPG          -
-    strings: extra @PG (software) line of the SAM header (in addition to STAR)
-
-outSAMheaderCommentFile -
-    string: path to the file with @CO (comment) lines of the SAM header
-
-### OUTPUT WIGGLE
-outWigType          None
-    string: type of sginal output
-                    None
-                    bedGraph
-                    
-outWigStrand        Stranded
-    string: strandedness of wigglle (bedGraph) output
-                    Stranded: separate strands, str1 and str2
-                    Unstranded: collapsed strands
-                    None: no output
 
 
 ### OUTPUT FILTERING
@@ -345,12 +293,7 @@ alignTranscriptsPerWindowNmax       100
     int>0: max number of transcripts per window           
 
 alignTranscriptsPerReadNmax               10000
-    int>0: max number of different alignments per read to consider
-
-alignEndsType           Local
-    string: type of read ends alignment
-                        Local   : standard local alignment with soft-clipping allowed
-                        EndToEnd: force end-to-end read alignment, do not soft-clip
+    max number of different alignments per read to consider
 
 ### SPLICE JUNCTIONS DATABASE PARAMETERS
 sjdbFileChrStartEnd                     -
@@ -393,31 +336,24 @@ winFlankNbins               4
 ### CHIMERIC ALIGNMENTS
 
 chimSegmentMin              0
-    int>=0: minimum length of chimeric segment length, if ==0, no chimeric output
+    int>0: minimum length of chimeric segment length, if ==0, no chimeric output
 
 chimScoreMin                0
-    int>=0: minimum total (summed) score of the chimeric segments
+    int>0: minimum total (summed) score of the chimeric segments
 
 chimScoreDropMax            20
-    int>=0: max drop (difference) of chimeric score (the sum of scores of all chimeric segements) from the read length
+    int>0: max drop (difference) of chimeric score (the sum of scores of all chimeric segements) from the read length
 
 chimScoreSeparation         10
-    int>=0: minimum difference (separation) between the best chimeric score and the next one
+    int>0: minimum difference (separation) between the best chimeric score and the next one
 
 chimScoreJunctionNonGTAG    -1
     int: penalty for a non-GT/AG chimeric junction
 
 chimJunctionOverhangMin     20
-    int>=0: minimum overhang for a chimeric junction
+    int>0: minimum overhang for a chimeric junction
 
-### QUANTIFICATION OF ANNOTATIONS
-quantMode                   -
-    string(s): types of qunatification requested
-                            - : None
-                            TranscriptomeSAM : output SAM/BAM alignments to transcriptome into a separate file
-
-
-### NOT USED Smith-Waterman alignment parameters for PacBio reads
+### Smith-Waterman alignment parameters for PacBio reads
 swMode              0
     int>=0: 0: no SW alignments, 1: full SW alignment
 

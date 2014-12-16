@@ -4,8 +4,6 @@
 InOutStreams::InOutStreams() {
     logStdOut=NULL;
     outSAM=NULL;
-    outBAMfileUnsorted=NULL;
-    outQuantBAMfile=NULL;
 };
 
 InOutStreams::~InOutStreams() {
@@ -15,7 +13,6 @@ InOutStreams::~InOutStreams() {
     
     logStdOutFile.flush();
     outSAMfile.flush();
-    
     outChimSAM.flush();
     outChimJunction.flush();    
     logProgress.flush();

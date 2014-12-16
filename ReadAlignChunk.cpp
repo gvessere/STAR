@@ -2,10 +2,10 @@
 #include <pthread.h>
 #include "ErrorWarning.h"
 
-ReadAlignChunk::ReadAlignChunk(Parameters* Pin, Genome &genomeIn, Transcriptome *TrIn, int iChunk) : P(Pin),Tr(TrIn) {//initialize chunk
+ReadAlignChunk::ReadAlignChunk(Parameters* Pin, Genome &genomeIn, int iChunk) : P(Pin) {//initialize chunk
     
-    RA = new ReadAlign(P,genomeIn, Tr);//new local copy of RA for each chunk
-   
+    RA = new ReadAlign(P,genomeIn);//new local copy of RA for each chunk
+    
     chunkIn=new char* [P->readNmates];
     readInStream=new istringstream* [P->readNmates];
 //     readInStream=new istringstream* [P->readNmates];
@@ -17,40 +17,11 @@ ReadAlignChunk::ReadAlignChunk(Parameters* Pin, Genome &genomeIn, Transcriptome 
        RA->readInStream[ii]=readInStream[ii];
     };
     
-    
-    if (P->outSAMbool) {
-        chunkOutBAM=new char [P->chunkOutBAMsizeBytes];
-        RA->outBAMarray=chunkOutBAM;
-        chunkOutBAMstream=new ostringstream;
-        chunkOutBAMstream->rdbuf()->pubsetbuf(chunkOutBAM,P->chunkOutBAMsizeBytes);
-        RA->outSAMstream=chunkOutBAMstream;
-        RA->outSAMstream->seekp(0,ios::beg);
-        chunkOutBAMtotal=0;
-    };
-    
-    if (P->outBAMunsorted) {
-        chunkOutBAMunsorted = new BAMoutput (P->chunkOutBAMsizeBytes,P->inOut->outBAMfileUnsorted);
-        RA->outBAMunsorted = chunkOutBAMunsorted;
-    } else {
-        chunkOutBAMunsorted=NULL;
-        RA->outBAMunsorted=NULL;
-    };
-    
-    if (P->outBAMcoord) {
-        chunkOutBAMcoord = new BAMoutput (P->chunkOutBAMsizeBytes, P->outBAMcoordNbins, P->chrStart[P->nChrReal], iChunk, P->outBAMsortTmpDir);
-        RA->outBAMcoord = chunkOutBAMcoord;
-    } else {
-        chunkOutBAMcoord=NULL;
-        RA->outBAMcoord=NULL;
-    };    
-    
-    if ( (P->quantModeI & PAR_quantModeI_TranscritomeSAM) > 0) {
-        chunkOutBAMquant = new BAMoutput (P->chunkOutBAMsizeBytes,P->inOut->outQuantBAMfile);
-        RA->outBAMquant = chunkOutBAMquant;
-    } else {
-        chunkOutBAMquant=NULL;
-        RA->outBAMquant=NULL;
-    };         
+    chunkOutSAM=new char [P->chunkOutSAMsizeBytes];
+    chunkOutSAMstream=new ostringstream;
+    chunkOutSAMstream->rdbuf()->pubsetbuf(chunkOutSAM,P->chunkOutSAMsizeBytes);
+    RA->outSAMstream=chunkOutSAMstream;
+    RA->outSAMstream->seekp(0,ios::beg);
     
     chunkOutSJ=new OutSJ (P->limitOutSJcollapsed, P);
     chunkOutSJ1=new OutSJ (P->limitOutSJcollapsed, P);

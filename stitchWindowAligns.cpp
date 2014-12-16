@@ -44,7 +44,7 @@ void stitchWindowAligns(uint iA, uint nA, int Score, bool WAincl[], uint tR2, ui
                
                 trAstep1.reset();
                 //                                                            //avoid extending before Chr start
-                if ( extendAlign(R, Q, G, trA.rStart-1, trA.gStart-1, -1, -1, min(trA.rStart, trA.gStart - P->chrStart[trA.Chr]), tR2-trA.rStart+1, trA.nMM, P->outFilterMismatchNmax, P->outFilterMismatchNoverLmax1, &trAstep1) ) {//if could extend
+                if ( extendAlign(R, Q, G, trA.rStart-1, trA.gStart-1, -1, -1, min(trA.rStart, trA.gStart - P->chrStart[trA.Chr]), tR2-trA.rStart+1, trA.nMM, P->outFilterMismatchNmax, P->outFilterMismatchNoverLmax, &trAstep1) ) {//if could extend
         
                     trA.add(&trAstep1);
                     Score += trAstep1.maxScore;
@@ -66,7 +66,7 @@ void stitchWindowAligns(uint iA, uint nA, int Score, bool WAincl[], uint tR2, ui
                 
                 trAstep1.reset();            
                 //                                              //to prevent extension past the Chr end
-                if ( extendAlign(R, Q, G, tR2+1, tG2+1, +1, +1, min(Lread-tR2-1,P->chrStart[trA.Chr+1]-tG2-2), tR2-trA.rStart+1, trA.nMM, P->outFilterMismatchNmax, P->outFilterMismatchNoverLmax1, &trAstep1) ) {//if could extend
+                if ( extendAlign(R, Q, G, tR2+1, tG2+1, +1, +1, min(Lread-tR2-1,P->chrStart[trA.Chr+1]-tG2-2), tR2-trA.rStart+1, trA.nMM, P->outFilterMismatchNmax, P->outFilterMismatchNoverLmax, &trAstep1) ) {//if could extend
                     
                     trA.add(&trAstep1);
                     Score += trAstep1.maxScore;
@@ -81,7 +81,7 @@ void stitchWindowAligns(uint iA, uint nA, int Score, bool WAincl[], uint tR2, ui
             };
         };
         };
-           
+    
         trA.rLength = 0;
         for (uint isj=0;isj<trA.nExons;isj++) {
             trA.rLength += trA.exons[isj][EX_L];
@@ -173,7 +173,7 @@ void stitchWindowAligns(uint iA, uint nA, int Score, bool WAincl[], uint tR2, ui
         };        
         
         if ( trA.exons[0][EX_iFrag]!=trA.exons[trA.nExons-1][EX_iFrag] ) {//check for correct overlap between mates
-            if (trA.exons[trA.nExons-1][EX_G]+trA.exons[trA.nExons-1][EX_L] <= trA.exons[0][EX_G]) return; //to avoid negative insert size
+//             if (trA.exons[trA.nExons-1][EX_G]+trA.exons[trA.nExons-1][EX_L] <= trA.exons[0][EX_G]) return; //to avoid strangely overlapping fragments
             uint iexM2=trA.nExons;
             for (uint iex=0;iex<trA.nExons-1;iex++) {//find the first exon of the second mate
                 if (trA.canonSJ[iex]==-3) {//        
@@ -184,7 +184,7 @@ void stitchWindowAligns(uint iA, uint nA, int Score, bool WAincl[], uint tR2, ui
             
             if ( trA.exons[iexM2-1][EX_G] + trA.exons[iexM2-1][EX_L] > trA.exons[iexM2][EX_G] ) {//mates overlap - check consistency of junctions
                 
-                if (trA.exons[0][EX_G] > trA.exons[iexM2][EX_G]+trA.exons[0][EX_R]) return; //LeftMateStart > RightMateStart
+                if (trA.exons[0][EX_G]-trA.exons[0][EX_R] > trA.exons[iexM2][EX_G]) return; //LeftMateStart > RightMateStart
                 if (trA.exons[iexM2-1][EX_G]+trA.exons[iexM2-1][EX_L] > trA.exons[trA.nExons-1][EX_G]+Lread-trA.exons[trA.nExons-1][EX_R]) return; //LeftMateEnd   > RightMateEnd
                 
                 //check for junctions consistency
@@ -235,14 +235,6 @@ void stitchWindowAligns(uint iA, uint nA, int Score, bool WAincl[], uint tR2, ui
                 //only record the transcripts within the window that are in the Score range
                 //OR within the score range of each mate
                 //OR all transcript if chimeric detection is activated
-            
-            if (P->outFilterMismatchNoverLmax1<0) {//check that the alignment is end-to-end
-                uint rTotal=trA.rLength+trA.lIns;
-//                 for (uint iex=1;iex<trA.nExons;iex++) {//find the inside exons
-//                     rTotal+=trA.exons[iex][EX_R]-trA.exons[iex-1][EX_R];
-//                 };                
-                if ( (trA.iFrag<0 && rTotal<(RA->readLength[0]+RA->readLength[1])) || (trA.iFrag>=0 && rTotal<RA->readLength[trA.iFrag])) return;
-            };
             
             uint iTr=0; //transcript insertion/replacement place
           

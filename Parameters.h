@@ -6,8 +6,6 @@
 #include "ParameterInfo.h"
 #include <map>
 
-#define PAR_quantModeI_TranscritomeSAM 0x1
-
 class Parameters {
     
     public:
@@ -40,17 +38,12 @@ class Parameters {
         uint genomeSAindexNbases; //length of the SA pre-index strings
         uint *genomeSAindexStart;//starts of the L-mer indices in the SAindex, 1<=L<=genomeSAindexNbases
         
-        char genomeNumToNT[6];
+        
         //read parameters
-        uint iReadAll;
-        int readFilesIndex;
-        uint32 readFilesN;
         vector <string> readFilesIn, readFilesInTmp;
-        vector <vector <string>> readFilesNames;
         uint readNmates;
         string readMatesLengthsIn;
         vector <string> readFilesCommand;
-        string outSAMreadID;
         
         vector <uint> clip5pNbases, clip3pNbases, clip3pAfterAdapterNbases;    
         vector <double> clip3pAdapterMMp;
@@ -67,7 +60,6 @@ class Parameters {
         uint alignIntronMin;//min length to call a gap an intron
         uint alignIntronMax;//max length to call 
         uint alignMatesGapMax;//max gap between the mates (if paired-end)
-        string alignEndsType;
         
         //seed parameters
         uint seedMultimapNmax; //max number of multiple alignments per piece          
@@ -79,27 +71,11 @@ class Parameters {
         double seedSearchStartLmaxOverLread; //length of split start points
 
         //chunk parameters
-        uint chunkInSizeBytes,chunkInSizeBytesArray,chunkOutBAMsizeBytes;
+        uint chunkInSizeBytes,chunkInSizeBytesArray,chunkOutSAMsizeBytes;
         
         //output
-        string outFileNamePrefix, outStd, outTmpDir;
-        string outBAMfileCoordName;
-        
-        //SAM output
-        string samHeader;
-        string outSAMmode, outSAMstrandField,  outSAMunmapped, outSAMorder, outSAMprimaryFlag;
-        vector<string> outSAMattributes, outSAMheaderHD, outSAMheaderPG;
-        vector<string> outSAMattrRGline,outSAMattrRGlineSplit,outSAMattrRG;
-        string outSAMheaderCommentFile;
-        int outSAMmapqUnique;
-        struct {bool NH,HI,AS,NM,MD,nM,jM,jI,RG,XS;} outSAMattrPresent, outSAMattrPresentQuant;
-        vector <int> outSAMattrOrder, outSAMattrOrderQuant;
-        int outBAMcompression;
-        vector <string> outSAMtype;
-        bool outBAMunsorted, outBAMcoord, outSAMbool;
-        uint32 outBAMcoordNbins;
-        string outBAMsortTmpDir;
-        
+        string outFileNamePrefix, outStd;
+        string outSAMmode, outSAMstrandField, outSAMattributes, outSAMunmapped, outSAMorder, outSAMprimaryFlag;
         string outReadsUnmapped;
         int outQSconversionAdd;
         string outFileTmp;
@@ -108,7 +84,7 @@ class Parameters {
         uint outFilterMatchNmin,outFilterMismatchNmax,outFilterMultimapNmax;//min number of matches
         double outFilterScoreMinOverLread, outFilterMatchNminOverLread;//normalzied to read length
         intScore outFilterScoreMin,outFilterMultimapScoreRange;//min score to output
-        double outFilterMismatchNoverLmax, outFilterMismatchNoverLmax1; //max proportion of all MM within all bases
+        double outFilterMismatchNoverLmax; //max proportion of all MM within all bases
         string outFilterIntronMotifs;
         string outFilterType; //type of filtering 
         int outFilterBySJoutStage; //indicates the stage of filtering by SJout 
@@ -120,20 +96,11 @@ class Parameters {
         vector <int32> outSJfilterDistToOtherSJmin; //min allowed distance to other SJ's donor/acceptor
         vector <int32> outSJfilterIntronMaxVsReadN;
         
-        //wiggle output
-        vector <string> outWigType,outWigStrand;
-        struct {
-            bool yes;
-            bool strand;
-        } outWigFlags; 
-        
-        
         //storage limits
         uint limitGenomeGenerateRAM;
         uint limitIObufferSize; //max size of the in/out buffer, bytes
         uint limitOutSAMoneReadBytes;
         uint limitOutSJoneRead, limitOutSJcollapsed;
-        uint limitBAMsortRAM;
         
         // penalties
         intScore scoreGap, scoreGapNoncan, scoreGapGCAG, scoreGapATAC, scoreDelBase, scoreDelOpen, scoreInsBase, scoreInsOpen; 
@@ -166,11 +133,6 @@ class Parameters {
         uint8 *sjdbStrand; //junctions strand, not used yet
         
         uint sjNovelN, *sjNovelStart, *sjNovelEnd; //novel junctions collapased and filtered
-        
-        //quantification parameters
-            //input
-        vector <string> quantMode; //quantification mode input string
-        uint32 quantModeI; //quantification mode integer
         
         //chimeric
         uint chimSegmentMin, chimJunctionOverhangMin; //min chimeric donor/acceptor length

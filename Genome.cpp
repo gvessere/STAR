@@ -13,26 +13,8 @@
 #define SHM_startG 16
 #define SHM_projectID 23
 
-// Genome::Genome(Parameters* Pin) {
-//     P=Pin;
-// };
-
-Genome::~Genome() {
-    P->inOut->logMain << "--genomeLoad=" << P->genomeLoad <<" ."<<endl;
-    if (P->genomeLoad=="LoadAndRemove") {//mark genome for removal after the jobs complete, if there are no other jobs attached to it
-        struct shmid_ds shmStat;
-        shmctl(shmID,IPC_STAT,&shmStat);
-        if (shmStat.shm_nattch>1) {
-            P->inOut->logMain << shmStat.shm_nattch-1 << " other job(s) are attached to the shared memory segment, will not remove it." <<endl;
-        } else {
-            shmctl(shmID,IPC_RMID,&shmStat);
-            P->inOut->logMain <<"No other jobs are attached to the shared memory segement, removing it."<<endl;
-        };
-    }; 
-};
-
-void Genome::genomeLoad(){//allocate and load Genome
-    shmID=0;
+void Genome::genomeLoad(Parameters* P){//allocate and load Genome
+    int shmID=0;
     bool shmLoad=false;   
     key_t shmKey=ftok(P->genomeDir.c_str(),SHM_projectID);;    
     char *shmStart=NULL;
@@ -260,6 +242,12 @@ void Genome::genomeLoad(){//allocate and load Genome
             sigG = shmNext;
             shmNext += P->nGenome;
         };        
+        
+        if (P->genomeLoad=="LoadAndRemove") {//mark genome for removal after the jobs complete
+            struct shmid_ds *buf=NULL;
+            shmctl(shmID,IPC_RMID,buf);
+            P->inOut->logMain <<"Marked genome shared memory for removal.\n"<<flush;            
+        }; 
     };
 
     G=G1+L;

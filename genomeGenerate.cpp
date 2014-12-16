@@ -73,7 +73,7 @@ uint genomeScanFastaFiles (Parameters *P, char* G, bool flagRun) {//scans fasta 
         fileIn.open(P->genomeFastaFiles.at(ii).c_str());
         if ( !fileIn.good() ) {//
             ostringstream errOut;
-            errOut << "EXITING because of INPUT ERROR: could not open genomeFastaFile: " <<P->genomeFastaFiles.at(ii) <<"\n";
+            errOut << "EXITING because of INPUT ERROR: could not open genomeFastaFile: " <<P->genomeFastaFiles.at(ii) <<endl;
             exitWithError(errOut.str(),std::cerr, P->inOut->logMain, EXIT_CODE_INPUT_FILES, *P);            
         };
         while(!fileIn.eof()) {//read each file until eof
@@ -167,24 +167,20 @@ void genomeGenerate(Parameters *P) {
     ofstream genomePar((P->genomeDir+("/genomeParameters.txt")).c_str());
     if (genomePar.fail()) {//
         ostringstream errOut;
-        errOut << "EXITING because of FATAL ERROR: could not create output file "<< P->genomeDir+("/genomeParameters.txt") << "\n";
-        errOut << "Solution: check that the genomeDir directory exists and you have write permission for it: genomeDir="<< P->genomeDir << "\n" <<flush;        
+        errOut << "EXITING because of FATAL ERROR: could not create output file "<< P->genomeDir+("/genomeParameters.txt") << endl;
+        errOut << "Solution: check that the genomeDir directory exists and you have write permission for it: genomeDir="<< P->genomeDir << endl <<flush;        
         exitWithError(errOut.str(),std::cerr, P->inOut->logMain, EXIT_CODE_INPUT_FILES, *P);
     };    
     
-    genomePar << "versionGenome\t" << P->versionSTAR <<"\n";
+    genomePar << "versionGenome\t" << P->versionSTAR <<endl;
     genomePar << "genomeFastaFiles\t";
     for (uint ii=0;ii<P->genomeFastaFiles.size();ii++) genomePar << P->genomeFastaFiles.at(ii) << " ";
-    genomePar << "\n";
-    genomePar << "genomeSAindexNbases\t" << P->genomeSAindexNbases << "\n";
-    genomePar << "genomeChrBinNbits\t" << P->genomeChrBinNbits << "\n";
-    genomePar << "genomeSAsparseD\t" << P->genomeSAsparseD <<"\n";
-    genomePar << "sjdbOverhang\t" << P->sjdbOverhang <<"\n";
-    genomePar << "sjdbFileChrStartEnd\t" << P->sjdbFileChrStartEnd <<"\n";
-    genomePar << "sjdbGTFfile\t" << P->sjdbGTFfile <<"\n";
-    genomePar << "sjdbGTFchrPrefix\t" << P->sjdbGTFchrPrefix <<"\n";
-    genomePar << "sjdbGTFfeatureExon\t" << P->sjdbGTFfeatureExon <<"\n";
-    genomePar << "sjdbGTFtagExonParentTranscript\t" << P->sjdbGTFtagExonParentTranscript <<"\n";
+    genomePar << endl;
+    genomePar << "genomeSAindexNbases\t" << P->genomeSAindexNbases << endl;
+    genomePar << "genomeChrBinNbits\t" << P->genomeChrBinNbits << endl;
+    genomePar << "genomeSAsparseD\t" << P->genomeSAsparseD <<endl;
+    genomePar << "sjdbOverhang\t" << P->sjdbOverhang <<endl;
+    genomePar << "sjdbFileChrStartEnd\t" << P->sjdbFileChrStartEnd <<endl;
     
     genomePar.close();    
     
@@ -201,29 +197,17 @@ void genomeGenerate(Parameters *P) {
         };
 
         while (sjdbStreamIn.good()) {
-            string oneLine,chr1;
+            string oneLine,str1;
             uint u1,u2;
-            char str1;
+            char c1;
             getline(sjdbStreamIn,oneLine);
             istringstream oneLineStream (oneLine);
-            oneLineStream >> chr1 >> u1 >> u2 >> str1;
-            if (chr1!="") {
-                sjdbLoci.chr.push_back(chr1);
+            oneLineStream >> str1 >> u1 >> u2 >> c1;
+            if (str1!="") {
+                sjdbLoci.chr.push_back(str1);
                 sjdbLoci.start.push_back(u1);
                 sjdbLoci.end.push_back(u2);
-                switch (str1) {//convert numbers to symbols
-                    case '1':
-                    case '+':
-                        str1='+';
-                        break;
-                    case '2':
-                    case '-':
-                        str1='-';
-                        break;
-                    default:
-                        str1='.';
-                };
-                sjdbLoci.str.push_back(str1);
+                sjdbLoci.str.push_back(c1);
             };
         };         
         
@@ -333,41 +317,24 @@ void genomeGenerate(Parameters *P) {
         
         //sort sjdb
         uint *sjdbSort=new uint [sjdbLoci.chr.size()*3];
-        for (uint ii=0;ii<sjdbLoci.chr.size();ii++) {
-            uint shift1=0;
-            switch (sjdbLoci.str.at(ii)) {
-                case '+':
-                    shift1=0;
-                    break;
-                case '-':
-                    shift1=NbasesChrReal;
-                    break;
-                default:
-                    shift1=2*NbasesChrReal;
-            };
-            sjdbSort[ii*3]=sjdbS[ii]+shift1; //separate sorting of +/- strand
-            sjdbSort[ii*3+1]=sjdbE[ii]+shift1;
+        for (uint ii=0;ii<sjdbLoci.chr.size();ii++) {   
+            sjdbSort[ii*3]=sjdbS[ii]+(sjdbLoci.str.at(ii)=='-' ? NbasesChrReal : 0); //separate sorting of +/- strand
+            sjdbSort[ii*3+1]=sjdbE[ii]+(sjdbLoci.str.at(ii)=='-' ? NbasesChrReal : 0);
             sjdbSort[ii*3+2]=ii;
         };
         
         qsort((void *) sjdbSort, sjdbLoci.chr.size(), sizeof(uint)*3, funCompareUint2);
-
+        
         uint *I=new uint [sjdbLoci.chr.size()];
         uint nsj=0;
         for (uint ii=0;ii<sjdbLoci.chr.size();ii++) {
             uint isj=sjdbSort[ii*3+2];//index of the next sorted junction            
-            uint isj0=I[nsj-1]; //index of the last recorded junctions
-            if (nsj==0 || sjdbS[isj]!=sjdbS[isj0] || sjdbE[isj]!=sjdbE[isj0]) {//different intron coordinates, add new junction
+            if (nsj==0 || sjdbS[isj]!=sjdbS[I[nsj-1]] || sjdbE[isj]!=sjdbE[I[nsj-1]]) {//add new junction
                 I[nsj++]=isj;
-//             } else {//same coordinates
-//                 if ( sjdbLoci.str.at(isj0)>0 && sjdbLoci.str.at(isj)==0 ) {//old junction has defined strand, new - does not, keep old junctions
-//                 } else if (sjdbLoci.str.at(isj0)==0 && sjdbLoci.str.at(isj)>0) {//new junction has defined strand, old - does not, replaces
-//                     I[nsj-1]=isj;//replace the old junction
-            } else if ( (sjdbMotif[isj]>0 && sjdbMotif[isj0]==0) \
-                  || ( ((sjdbMotif[isj]>0) == (sjdbMotif[isj0]>0)) && sjdbShiftLeft[isj]<sjdbShiftLeft[isj0]) ) {
-                //canonical or left-most junction wins
-                I[nsj-1]=isj;//replace the old junction
-//                 };
+            } else if ( (sjdbMotif[isj]>0 && sjdbMotif[I[nsj-1]]==0) \
+                      ||( ((sjdbMotif[isj]>0) == (sjdbMotif[I[nsj-1]]>0)) && sjdbShiftLeft[isj]<sjdbShiftLeft[I[nsj-1]])) {//replace the old junctions
+                //canonical or left-most junctions junction win
+                I[nsj-1]=isj;
             };
         };
         
@@ -389,28 +356,17 @@ void genomeGenerate(Parameters *P) {
         
         uint nsj1=0;
         for (uint ii=0;ii<nsj;ii++) {
+            bool sjReplace=false;
             uint isj=sjdbSort[ii*3+2];
-            
             if ( nsj1>0 && P->sjdbStart[nsj1-1]==sjdbSort[ii*3] && P->sjdbEnd[nsj1-1]==sjdbSort[ii*3+1] ) {//same loci on opposite strands
-                //if only one of the strands is defined, keep that junction
-                if (P->sjdbStrand[nsj1-1]>0 && sjdbLoci.str.at(isj)=='.') {
+                if (P->sjdbMotif[nsj1-1]>0 || (P->sjdbMotif[nsj1-1]==0 && sjdbMotif[isj]==0)) {//old sj is canonical, or both are non-canonical (on opposite strand)
+                    P->sjdbStrand[nsj1-1]=0;
                     continue;
-                } else if (P->sjdbStrand[nsj1-1]==0 && sjdbLoci.str.at(isj)!='.') {
-                    nsj1--; //replace old with new, keep strand of the new
-                } else if (P->sjdbMotif[nsj1-1]==0 && sjdbMotif[isj]==0) {
-                    //both are non-canonical (on opposite strand)
-                    P->sjdbStrand[nsj1-1]=0;//do not record new junction, keep old with undefined strand
-                    continue;
-                } else if ( (P->sjdbMotif[nsj1-1]>0 && sjdbMotif[isj]==0) ||(P->sjdbMotif[nsj1-1]%2 == (2-P->sjdbStrand[nsj1-1])) ){//both strands defined, both junctions canonical
-                    //old junction is canonical, new is not, OR old junction is on correct strand
-                    continue;
-                } else {
-                    //new junction is on correct strand, replace the old one
+                } else {//replace the junction
                     nsj1--;
+                    sjReplace=true;
                 };
             };
-            
-            //record junction
             P->sjdbStart[nsj1]=sjdbSort[ii*3];
             P->sjdbEnd[nsj1]=sjdbSort[ii*3+1];
             P->sjdbMotif[nsj1]=sjdbMotif[isj];
@@ -427,15 +383,14 @@ void genomeGenerate(Parameters *P) {
                     P->sjdbStrand[nsj1]=2-P->sjdbMotif[nsj1]%2;
                 };
             };
+            if (sjReplace) P->sjdbStrand[nsj1]=0;
             nsj1++;
         };            
         P->sjdbN=nsj1;       
         P->sjDstart = new uint [P->sjdbN];
         P->sjAstart = new uint [P->sjdbN];
-        
+
         ofstream sjdbInfo((P->genomeDir+"/sjdbInfo.txt").c_str());
-        ofstream sjdbList ((P->genomeDir+"/sjdbList.out.tab").c_str());
-        char strandChar[3]={'.','+','-'}; 
         //first line is some general useful information
         sjdbInfo << P->sjdbN <<"\t"<< P->sjdbOverhang <<"\n";
         uint sjGstart=P->chrStart[P->nChrReal];
@@ -451,15 +406,8 @@ void genomeGenerate(Parameters *P) {
             memcpy(G+sjGstart+P->sjdbOverhang,G+P->sjAstart[ii],P->sjdbOverhang);//sjdbStart contains 1-based intron loci
             sjGstart += P->sjdbLength;     
             sjdbInfo << P->sjdbStart[ii] <<"\t"<< P->sjdbEnd[ii] <<"\t"<<(int) P->sjdbMotif[ii] <<"\t"<<(int) P->sjdbShiftLeft[ii] <<"\t"<<(int) P->sjdbShiftRight[ii]<<"\t"<<(int) P->sjdbStrand[ii] <<"\n";
-            uint chr1=P->chrBin[ P->sjdbStart[ii] >> P->genomeChrBinNbits];
-            sjdbList << P->chrName[chr1]<< "\t" << P->sjdbStart[ii]-P->chrStart[chr1] + 1 + (P->sjdbMotif[ii]>0 ? 0:P->sjdbShiftLeft[ii]) \
-                                        << "\t"<<  P->sjdbEnd[ii]-P->chrStart[chr1] + 1 + (P->sjdbMotif[ii]>0 ? 0:P->sjdbShiftLeft[ii]) \
-                                        << "\t"<< strandChar[P->sjdbStrand[ii]]<<"\n";
         };
         sjdbInfo.close();
-        sjdbList.close();
-        
-        
         time ( &rawTime );
         P->inOut->logMain     << timeMonthDayTime(rawTime) <<" ... finished processing splice junctions database ...\n" <<flush;   
         *P->inOut->logStdOut  << timeMonthDayTime(rawTime) <<" ... finished processing splice junctions database ...\n" <<flush;
@@ -476,12 +424,12 @@ void genomeGenerate(Parameters *P) {
     ofstream chrNL((P->genomeDir+("/chrNameLength.txt")).c_str());
     
     for (uint ii=0;ii<P->nChrReal;ii++) {//output names, starts, lengths               
-        chrN<<P->chrName[ii]<<"\n";
-        chrS<<P->chrStart[ii]<<"\n";
-        chrL<<P->chrLength.at(ii)<<"\n";
-        chrNL<<P->chrName[ii]<<"\t"<<P->chrLength.at(ii)<<"\n";        
+        chrN<<P->chrName[ii]<<endl;
+        chrS<<P->chrStart[ii]<<endl;
+        chrL<<P->chrLength.at(ii)<<endl;
+        chrNL<<P->chrName[ii]<<"\t"<<P->chrLength.at(ii)<<endl;        
     };
-    chrS<<P->chrStart[P->nChrReal]<<"\n";//size of the genome
+    chrS<<P->chrStart[P->nChrReal]<<endl;//size of the genome
     chrN.close();chrL.close();chrS.close(); chrNL.close();   
     
     if (P->limitGenomeGenerateRAM < (nG1alloc+nG1alloc/3)) {//allocate nG1alloc/3 for SA generation
@@ -525,8 +473,8 @@ void genomeGenerate(Parameters *P) {
     PackedArray SA1;    
     SA1.defineBits(P->GstrandBit+1,P->nSA);
         
-    P->inOut->logMain  << "Number of SA indices: "<< P->nSA << "\n"<<flush;    
-    P->inOut->logMain  << "SA size in bytes: "<< P->nSAbyte << "\n"<<flush;
+    P->inOut->logMain  << "Number of SA indices: "<< P->nSA << endl<<flush;    
+    P->inOut->logMain  << "SA size in bytes: "<< P->nSAbyte << endl<<flush;
     
 
     //sort SA
@@ -659,7 +607,7 @@ void genomeGenerate(Parameters *P) {
         if (packedInd != P->nSA ) {//
             ostringstream errOut;                            
             errOut << "EXITING because of FATAL problem while generating the suffix array\n";
-            errOut << "The number of indices read from chunks = "<<packedInd<<" is not equal to expected nSA="<<P->nSA<<"\n";
+            errOut << "The number of indices read from chunks = "<<packedInd<<" is not equal to expected nSA="<<P->nSA<<endl;
             errOut << "SOLUTION: try to re-run suffix array generation, if it still does not work, report this problem to the author\n"<<flush;
             exitWithError(errOut.str(),std::cerr, P->inOut->logMain, EXIT_CODE_INPUT_FILES, *P);
         };

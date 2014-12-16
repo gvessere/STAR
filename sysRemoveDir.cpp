@@ -1,22 +1,21 @@
+#include <sys/types.h>
+#include <dirent.h>
 #include <string>
 #include <cstring>
-//#define _XOPEN_SOURCE 500
-#include <ftw.h>
+#include <stdio.h>
 #include <unistd.h>
 
-int removeFileOrDir(const char *fpath,const struct stat *sb, int typeflag, struct FTW *ftwbuf) {
-    if (typeflag==FTW_F) {//file
-        remove(fpath);
-    } else if (typeflag==FTW_DP) {//dir
-        rmdir(fpath);
-    } else {//something went wrong, stop the removal
-        return -1;
-    };
-    return 0;
-};
-
-
 void sysRemoveDir(std::string dirName) {//remove directory and all its contents
-    int nftwFlag=FTW_DEPTH; 
-    nftw(dirName.c_str(), removeFileOrDir, 100, nftwFlag);
+    DIR *dirp = opendir(dirName.c_str());
+    if (dirp != NULL) {//otherwise directory does not exist
+        struct dirent *dp = NULL;
+        while ((dp = readdir(dirp)) != NULL) {
+            std::string file1=dp->d_name;
+            if (file1!="." && file1!="..") {
+                remove((dirName+file1).c_str());
+            };
+        };
+        (void)closedir(dirp);
+        rmdir(dirName.c_str());
+    };
 };

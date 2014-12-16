@@ -26,43 +26,5 @@ inline int funCompareUint2 (const void *a, const void *b) {
 	};
 };
 
-template <class arrayType, int arraySize>
-inline int funCompareArrays (const void *a, const void *b) {
-    arrayType* va= (uint*) a;
-    arrayType* vb= (uint*) b;
-
-    for (int ii=0;ii<arraySize;ii++) {
-        if (va[ii]>vb[ii]) {
-            return 1;
-        } else if (va[ii]<vb[ii]) {
-            return -1;
-        };
-    };
-
-    return 0;        
-
-};
-
-template <class argType>
-inline uint32 binarySearch1(argType x, argType *X, uint32 N) {
-    //binary search in the sorted list
-    //check the boundaries first
-    if (x>X[N-1] || x<X[0]) return -1;
-    
-    uint32 i1=0, i2=N-1, i3=N/2;
-    while (i2>i1+1) {//binary search
-        i3=(i1+i2)/2;
-        if (X[i3]>x) {
-            i2=i3;
-        } else {
-            i1=i3;
-        };
-    };
-    
-    while (i1<N && x==X[i1+1]) ++i1; //go forward to check for equals
-    return i1;
-};
-
-
 #endif
 

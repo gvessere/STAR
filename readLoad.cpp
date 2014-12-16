@@ -1,17 +1,15 @@
 #include "readLoad.h"
 #include "ErrorWarning.h"
 
-int readLoad(istream& readInStream, Parameters* P, uint iMate, uint& Lread, uint& LreadOriginal, char* readName, char* Seq, char* SeqNum, char* Qual, char* QualNum, uint &clip3pNtotal, uint &clip5pNtotal, uint &clip3pAdapterN, uint &iReadAll, uint &readFilesIndex){
+int readLoad(istream& readInStream, Parameters* P, uint iMate, uint& Lread, uint& LreadOriginal, char* readName, char* Seq, char* SeqNum, char* Qual, char* QualNum, uint &clip3pNtotal, uint &clip5pNtotal, uint &clip3pAdapterN){
     //load one read from a stream
     int readFileType=0;
     
-//     readInStream.getline(readName,DEF_readNameLengthMax); //extract name
+    readInStream.getline(readName,DEF_readNameLengthMax); //extract name
 
-    if (readInStream.peek()!='@') return -1; //end of the stream
-    
-    readName[0]=0;
-    readInStream >> readName; //TODO check that it does not overflow the array
-    if (strlen(readName)>=DEF_readNameLengthMax-1) {
+    if (readInStream.gcount()<=1) {//end of the stream
+        return -1;
+    } else if (readInStream.gcount()>=DEF_readNameLengthMax-1) {
         ostringstream errOut;
         errOut << "EXITING because of FATAL ERROR in reads input: read name is too long:" << readInStream.gcount()<<"\n";
         errOut << "Read Name="<<readName<<"\n";
@@ -19,9 +17,6 @@ int readLoad(istream& readInStream, Parameters* P, uint iMate, uint& Lread, uint
         errOut << "SOLUTION: increase DEF_readNameLengthMax in IncludeDefine.h and re-compile STAR\n";
         exitWithError(errOut.str(),std::cerr, P->inOut->logMain, EXIT_CODE_INPUT_FILES, *P);        
     };    
-    
-    readInStream >> iReadAll >> readFilesIndex; //extract read number
-    readInStream.ignore(DEF_readNameSeqLengthMax,'\n');//ignore the resit of the line - just in case
     
     readInStream.getline(Seq,DEF_readSeqLengthMax+1); //extract sequence   
 

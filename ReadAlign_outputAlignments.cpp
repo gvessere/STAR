@@ -4,23 +4,17 @@
 
 void ReadAlign::outputAlignments() {
     
-    outBAMbytes=0;
-    outBAMbytes1=0;
 
     bool mateMapped[2]={false,false};
-    
-    if (P->outFilterBySJoutStage<=1) {//no chimeric output for stage=2
-        chimericDetection();
-    };
     
     if ( nW==0 ) {//no good windows
         statsRA.unmappedOther++;
         unmapType=0;
-    } else if ( (trBest->maxScore < P->outFilterScoreMin) || (trBest->maxScore < (intScore) (P->outFilterScoreMinOverLread*(Lread-1))) \
-              || (trBest->nMatch < P->outFilterMatchNmin)  || (trBest->nMatch < (uint) (P->outFilterMatchNminOverLread*(Lread-1))) ) {//too short
+    } else if ( (trBest->maxScore < P->outFilterScoreMin) | (trBest->maxScore < (intScore) (P->outFilterScoreMinOverLread*(Lread-1))) \
+              | (trBest->nMatch < P->outFilterMatchNmin)  | (trBest->nMatch < (uint) (P->outFilterMatchNminOverLread*(Lread-1))) ) {//too short
         statsRA.unmappedShort++;
         unmapType=1;
-    } else if ( (trBest->nMM > P->outFilterMismatchNmax) || (double(trBest->nMM)/double(trBest->rLength)>P->outFilterMismatchNoverLmax) ) {//too many mismatches
+    } else if ( (trBest->nMM > P->outFilterMismatchNmax) | (double(trBest->nMM)/double(trBest->rLength)>P->outFilterMismatchNoverLmax) ) {//too many mismatches
         statsRA.unmappedMismatch++;
         unmapType=2;
     } else if (nTr > P->outFilterMultimapNmax){//too multi
@@ -28,8 +22,8 @@ void ReadAlign::outputAlignments() {
         unmapType=3;
     } else {//output transcripts
 
-        outFilterPassed=true;
-        if (P->outFilterBySJoutStage==1) {//filtering by SJout
+        bool outFilterPassed(true);
+        if (P->outFilterBySJoutStage==1) {//no filtering by SJout
             for (uint iTr=0;iTr<nTr;iTr++) {//check transcript for unannotated junctions
                 for (uint iex=0;iex<trMult[iTr]->nExons-1;iex++) {//check all junctions
                     if (trMult[iTr]->canonSJ[iex]>=0 && trMult[iTr]->sjAnnot[iex]==0) {
@@ -46,7 +40,7 @@ void ReadAlign::outputAlignments() {
                 
 //                 if (P->runThreadN>1) pthread_mutex_lock(&g_threadChunks.mutexOutFilterBySJout);
                 for (uint im=0;im<P->readNmates;im++) {
-                   chunkOutFilterBySJoutFiles[im] << readNameMates[im] << "/" <<im+1 <<" "<< iReadAll <<" "<< readFilesIndex;
+                   chunkOutFilterBySJoutFiles[im] << readNameMates[im] << "/" <<im+1;
                    chunkOutFilterBySJoutFiles[im] <<"\n";
                    chunkOutFilterBySJoutFiles[im] << Read0[im] <<"\n";
                     if (readFileType==2) {//fastq
@@ -80,19 +74,8 @@ void ReadAlign::outputAlignments() {
             };            
             
             for (uint iTr=0;iTr<nTr;iTr++) {//write all transcripts
-                if (P->outBAMunsorted || P->outBAMcoord) {//BAM output
-                    alignBAM(*(trMult[iTr]), nTr, iTr, P->chrStart[trMult[iTr]->Chr], (uint) -1, (uint) -1, 0, -1, NULL, P->outSAMattrOrder);
-                    for (uint imate=0; imate<P->readNmates; imate++) {//output each mate
-                        if (P->outBAMunsorted) outBAMunsorted->unsortedOneAlign(outBAMoneAlign[imate], outBAMoneAlignNbytes[imate], imate>0 ? 0 : outBAMoneAlignNbytes[0]+outBAMoneAlignNbytes[1]);
-                        if (P->outBAMcoord)    outBAMcoord->coordOneAlign(outBAMoneAlign[imate], outBAMoneAlignNbytes[imate], P->chrStart[trMult[iTr]->Chr], (iReadAll<<32) | (iTr<<8) | trMult[iTr]->exons[0][EX_iFrag] );                        
-                    };
-                };
-            
-                if (P->outSAMbool){//SAM output
-                    outBAMbytes+=outputTranscriptSAM(*(trMult[iTr]), nTr, iTr, (uint) -1, (uint) -1, 0, -1, NULL, outSAMstream);
-                };
+                outputTranscriptSAM(*(trMult[iTr]), nTr, iTr, (uint) -1, (uint) -1, 0, outSAMstream);
             };
-                        
             if (P->outSJfilterReads=="All" || nTr==1) {
                 uint sjReadStartN=chunkOutSJ->N;        
                 for (uint iTr=0;iTr<nTr;iTr++) {//write all transcripts
@@ -101,27 +84,37 @@ void ReadAlign::outputAlignments() {
             };
             mateMapped[trBest->exons[0][EX_iFrag]]=true;
             mateMapped[trBest->exons[trBest->nExons-1][EX_iFrag]]=true;        
-            if (P->readNmates>1 && !(mateMapped[0] && mateMapped[1]) ) unmapType=4;
-            
-            if ( P->quantModeI > 0) {
-                quantTranscriptome(Tr, nTr, trMult,  alignTrAll);
-            };
+            if (P->readNmates>1 && !(mateMapped[0] && mateMapped[1]) ) unmapType=4;            
         };
+
+
+
     };
 
     if (unmapType>=0 && P->outSAMunmapped=="Within") {//unmapped read, at least one mate
-        if (P->outBAMunsorted || P->outBAMcoord) {//BAM output
-            alignBAM(*trBest, 0, 0, P->chrStart[trBest->Chr], (uint) -1, (uint) -1, 0,  unmapType, mateMapped, P->outSAMattrOrder);
-            for (uint imate=0; imate<P->readNmates; imate++) {//output each mate
-                if (P->outBAMunsorted) outBAMunsorted->unsortedOneAlign(outBAMoneAlign[imate], outBAMoneAlignNbytes[imate], imate>0 ? 0 : outBAMoneAlignNbytes[0]+outBAMoneAlignNbytes[1]);
-                //TODO clean for single-end alignments of PE reads
-                if ( (P->quantModeI & PAR_quantModeI_TranscritomeSAM) > 0 && unmapType!=4) outBAMquant->unsortedOneAlign(outBAMoneAlign[imate], outBAMoneAlignNbytes[imate], imate>0 ? 0 : outBAMoneAlignNbytes[0]+outBAMoneAlignNbytes[1]);
-                if (P->outBAMcoord)    outBAMcoord->coordOneAlign(outBAMoneAlign[imate], outBAMoneAlignNbytes[imate], 0, iReadAll);                                        
+        for (uint im=0; im<P->readNmates; im++) {   
+            if (!mateMapped[im]) {
+                int samFLAG=0x4;
+                if (P->readNmates==2) {//paired read
+                    samFLAG+=0x1 + (im==0 ? 0x40 : 0x80);
+                    if (mateMapped[1-im]) {//mate mapped
+                        if (trBest->Str!=1-im) samFLAG+=0x20;//mate strand reverted
+                    } else {//mate unmapped
+                        samFLAG+=0x8;
+                    };
+                };
+                
+                *outSAMstream << readName+1 <<"\t"<< samFLAG \
+                        <<"\t"<< '*' <<"\t"<< '0' <<"\t"<< '0' <<"\t"<< '*';
+                if (mateMapped[1-im]) {//mate is mapped
+                    *outSAMstream <<"\t"<< P->chrName[trBest->Chr] <<"\t"<< trBest->exons[0][EX_G] + 1 - P->chrStart[trBest->Chr];
+                } else {
+                    *outSAMstream <<"\t"<< '*' <<"\t"<< '0';
+                };
+                *outSAMstream <<"\t"<< '0' <<"\t"<< Read0[im] <<"\t"<< (readFileType==2 ? Qual0[im]:"*") \
+                        <<"\tNH:i:0" <<"\tHI:i:0" <<"\tAS:i:"<<trBest->maxScore <<"\tnM:i:"<<trBest->nMM<<"\tuT:A:" <<unmapType <<"\n";
             };
         };
-        if (P->outSAMbool) {
-            outBAMbytes+= outputTranscriptSAM(*trBest, 0, 0, (uint) -1, (uint) -1, 0, unmapType, mateMapped, outSAMstream);        
-        };        
     };
     if (unmapType>=0 && P->outReadsUnmapped=="Fastx" ){//output to fasta/q files
            for (uint im=0;im<P->readNmates;im++) {

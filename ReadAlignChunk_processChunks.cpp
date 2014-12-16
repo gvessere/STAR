@@ -16,32 +16,13 @@ void ReadAlignChunk::processChunks() {//read-map-write chunks
             while (chunkInSizeBytesTotal[0] < P->chunkInSizeBytes && chunkInSizeBytesTotal[1] < P->chunkInSizeBytes && !P->inOut->readIn[0].eof() && !P->inOut->readIn[1].eof()) {
                 char nextChar=P->inOut->readIn[0].peek();
                 if (nextChar=='@') {//fastq, not multi-line
-                    P->iReadAll++; //increment read number
-                    for (uint imate=0; imate<P->readNmates; imate++) {//for all mates           
-                        uint32 iline=0;
-                        if (P->outFilterBySJoutStage!=2) {//not the 2nd stage of the 2-stage mapping                        
-
-                            if (P->outSAMreadID=="Number") {
-                                chunkInSizeBytesTotal[imate] += sprintf(chunkIn[imate] + chunkInSizeBytesTotal[imate], "@%.llu", P->iReadAll);
-                            } else {
-                                P->inOut->readIn[imate] >> (chunkIn[imate] + chunkInSizeBytesTotal[imate]);
-                                chunkInSizeBytesTotal[imate] += strlen(chunkIn[imate] + chunkInSizeBytesTotal[imate]);
+                    for (uint imate=0; imate<P->readNmates; imate++) {                    
+                        for (uint imate=0; imate<P->readNmates; imate++) {
+                            for (int iline=0;iline<4;iline++) {
+                                P->inOut->readIn[imate].getline(chunkIn[imate] + chunkInSizeBytesTotal[imate], DEF_readNameSeqLengthMax+1 );
+                                chunkInSizeBytesTotal[imate] += P->inOut->readIn[imate].gcount();   
+                                chunkIn[imate][chunkInSizeBytesTotal[imate]-1]='\n';                        
                             };
-                            
-                            P->inOut->readIn[imate].ignore(DEF_readNameSeqLengthMax,'\n');
-
-                            chunkInSizeBytesTotal[imate] += sprintf(chunkIn[imate] + chunkInSizeBytesTotal[imate], " %.llu %i \n", P->iReadAll, P->readFilesIndex);
-                            
-                            iline=1;
-                        };
-//                         else {//2nd stage of 2-stage mapping
-//                         read index and file index are already recorded with the read name, simply copy it
-//                         P->inOut->readIn[imate].getline(chunkIn[imate] + chunkInSizeBytesTotal[imate], DEF_readNameSeqLengthMax+1 );                            
-//                         };
-                        for (;iline<4;iline++) {//TODO ignore the 3rd line of fastq
-                            P->inOut->readIn[imate].getline(chunkIn[imate] + chunkInSizeBytesTotal[imate], DEF_readNameSeqLengthMax+1 );
-                            chunkInSizeBytesTotal[imate] += P->inOut->readIn[imate].gcount();
-                            chunkIn[imate][chunkInSizeBytesTotal[imate]-1]='\n';                        
                         };
                     };
                 } else if (nextChar=='>') {//fasta, can be multiline, which is converted to single line
@@ -60,28 +41,13 @@ void ReadAlignChunk::processChunks() {//read-map-write chunks
                         };
                         chunkIn[imate][chunkInSizeBytesTotal[imate]]='\n'; 
                         chunkInSizeBytesTotal[imate] ++;   
-                    };                    
+                    };                
                 } else if (nextChar==' ' || nextChar=='\n' || P->inOut->readIn[0].eof()) {//end of stream
                     break;
-                } else {
-                    string word1;
-                    P->inOut->readIn[0] >> word1;
-                    if (word1=="FILE") {//new file marker
-                        P->inOut->readIn[0] >> P->readFilesIndex;
-                        P->inOut->logMain << "Starting to map file # " << P->readFilesIndex<<"\n";
-                        for (uint imate=0; imate<P->readNmates; imate++) {
-                            P->inOut->logMain << "mate " <<imate+1 <<":   "<<P->readFilesNames.at(imate).at(P->readFilesIndex) <<"\n";
-                            P->inOut->readIn[imate].ignore(numeric_limits<streamsize>::max(),'\n');
-                        };
-                        P->inOut->logMain<<flush;
-//                         if (P->readNmates==2) {//skip the FILE line for the second read
-//                             getline(P->inOut->readIn[1],word1);
-//                         };
-                    } else {//error
-                        ostringstream errOut;
-                        errOut << "EXITING because of FATAL ERROR in input reads: unknown file format: the read ID should start with @ or > \n";
-                        exitWithError(errOut.str(),std::cerr, P->inOut->logMain, EXIT_CODE_INPUT_FILES, *P);       
-                    };
+                } else {//error
+                    ostringstream errOut;
+                    errOut << "EXITING because of FATAL ERROR in input reads: unknown file format: the read ID should start with @ or > \n";
+                    exitWithError(errOut.str(),std::cerr, P->inOut->logMain, EXIT_CODE_INPUT_FILES, *P);                      
                 };
             };
             //TODO: check here that both mates are zero or non-zero
@@ -115,11 +81,7 @@ void ReadAlignChunk::processChunks() {//read-map-write chunks
         };
     };//cycle over input chunks
     
-    if (P->outFilterBySJoutStage!=1) {//not the first stage of the 2-stage mapping 
-        if (P->outBAMunsorted) chunkOutBAMunsorted->unsortedFlush();
-        if (P->outBAMcoord) chunkOutBAMcoord->coordFlush();
-        if (chunkOutBAMquant!=NULL) chunkOutBAMquant->unsortedFlush();
-        
+    if (P->outFilterBySJoutStage!=1) {//no concatenation for first stage of the 2-stage mapping 
         //the thread is finished mapping reads, concatenate the temp files into output files
         if (P->chimSegmentMin>0) {    
             chunkFstreamCat (RA->chunkOutChimSAM, P->inOut->outChimSAM, P->runThreadN>1, g_threadChunks.mutexOutChimSAM);
@@ -131,6 +93,5 @@ void ReadAlignChunk::processChunks() {//read-map-write chunks
             };
         };
     };
-    P->inOut->logMain << "Completed: thread #" <<iThread <<endl;
 };
 

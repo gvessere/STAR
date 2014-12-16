@@ -1,12 +1,9 @@
-#include "IncludeDefine.h"
 #include "Parameters.h"
 #include "ErrorWarning.h"
 #include "SequenceFuns.h"
 #include "OutSJ.h"
 #include "sysRemoveDir.h"
 #include "stringSubstituteAll.h"
-#include SAMTOOLS_BGZF_H
-#include "GlobalVariables.h"
 
 //for mkfifo
 #include <sys/stat.h>
@@ -47,30 +44,21 @@ Parameters::Parameters() {//initalize parameters info
     parArray.push_back(new ParameterInfoScalar <uint>   (-1, -1, "limitOutSAMoneReadBytes", &limitOutSAMoneReadBytes));
     parArray.push_back(new ParameterInfoScalar <uint>   (-1, -1, "limitOutSJcollapsed", &limitOutSJcollapsed));
     parArray.push_back(new ParameterInfoScalar <uint>   (-1, -1, "limitOutSJoneRead", &limitOutSJoneRead));
-    parArray.push_back(new ParameterInfoScalar <uint>   (-1, -1, "limitBAMsortRAM", &limitBAMsortRAM));
 
     //output
-    parArray.push_back(new ParameterInfoScalar <string>     (-1, 2, "outFileNamePrefix", &outFileNamePrefix));
-    parArray.push_back(new ParameterInfoScalar <string>     (-1, 2, "outTmpDir", &outTmpDir)); 
+    parArray.push_back(new ParameterInfoScalar <string>     (-1, 2, "outFileNamePrefix", &outFileNamePrefix)); 
     parArray.push_back(new ParameterInfoScalar <string>     (-1, 2, "outStd", &outStd));        
     parArray.push_back(new ParameterInfoScalar <string>     (-1, -1, "outReadsUnmapped", &outReadsUnmapped));
     parArray.push_back(new ParameterInfoScalar <int>        (-1, -1, "outQSconversionAdd", &outQSconversionAdd));
     
     //outSAM
-    parArray.push_back(new ParameterInfoVector <string>     (-1, -1, "outSAMtype", &outSAMtype));    
     parArray.push_back(new ParameterInfoScalar <string>     (-1, -1, "outSAMmode", &outSAMmode));
     parArray.push_back(new ParameterInfoScalar <string>     (-1, -1, "outSAMstrandField", &outSAMstrandField));
-    parArray.push_back(new ParameterInfoVector <string>     (-1, -1, "outSAMattributes", &outSAMattributes));
+    parArray.push_back(new ParameterInfoScalar <string>     (-1, -1, "outSAMattributes", &outSAMattributes));
     parArray.push_back(new ParameterInfoScalar <string>     (-1, -1, "outSAMunmapped", &outSAMunmapped));
     parArray.push_back(new ParameterInfoScalar <string>     (-1, -1, "outSAMorder", &outSAMorder));
     parArray.push_back(new ParameterInfoScalar <string>     (-1, -1, "outSAMprimaryFlag", &outSAMprimaryFlag));
-    parArray.push_back(new ParameterInfoScalar <string>     (-1, -1, "outSAMreadID", &outSAMreadID));
-    parArray.push_back(new ParameterInfoScalar <int>        (-1, -1, "outSAMmapqUnique", &outSAMmapqUnique));
-    parArray.push_back(new ParameterInfoVector <string>     (-1, -1, "outSAMattrRGline", &outSAMattrRGline));
-    parArray.push_back(new ParameterInfoVector <string>     (-1, -1, "outSAMheaderHD", &outSAMheaderHD));
-    parArray.push_back(new ParameterInfoVector <string>     (-1, -1, "outSAMheaderPG", &outSAMheaderPG));
-    parArray.push_back(new ParameterInfoScalar <string>     (-1, -1, "outSAMheaderCommentFile", &outSAMheaderCommentFile));
-
+    
 
    //output SJ filtering
     parArray.push_back(new ParameterInfoScalar <string>  (-1, -1, "outSJfilterReads", &outSJfilterReads));
@@ -79,10 +67,6 @@ Parameters::Parameters() {//initalize parameters info
     parArray.push_back(new ParameterInfoVector <int32>   (-1, -1, "outSJfilterOverhangMin", &outSJfilterOverhangMin));
     parArray.push_back(new ParameterInfoVector <int32>   (-1, -1, "outSJfilterDistToOtherSJmin", &outSJfilterDistToOtherSJmin));
     parArray.push_back(new ParameterInfoVector <int32>   (-1, -1, "outSJfilterIntronMaxVsReadN", &outSJfilterIntronMaxVsReadN));
-
-    //outpt wiggle
-    parArray.push_back(new ParameterInfoVector <string>   (-1, -1, "outWigType", &outWigType));
-    parArray.push_back(new ParameterInfoVector <string>   (-1, -1, "outWigStrand", &outWigStrand));
 
     //output filtering
     parArray.push_back(new ParameterInfoScalar <string>   (-1, -1, "outFilterType", &outFilterType) );
@@ -148,7 +132,6 @@ Parameters::Parameters() {//initalize parameters info
     parArray.push_back(new ParameterInfoScalar <double>     (-1, -1, "alignSplicedMateMapLminOverLmate", &alignSplicedMateMapLminOverLmate));       
     parArray.push_back(new ParameterInfoScalar <uint>       (-1, -1, "alignWindowsPerReadNmax", &alignWindowsPerReadNmax));  
     parArray.push_back(new ParameterInfoScalar <uint>       (-1, -1, "alignTranscriptsPerWindowNmax", &alignTranscriptsPerWindowNmax));  
-    parArray.push_back(new ParameterInfoScalar <string>     (-1, -1, "alignEndsType", &alignEndsType));  
 
     //chimeric
     parArray.push_back(new ParameterInfoScalar <uint>      (-1, -1, "chimSegmentMin", &chimSegmentMin));    
@@ -166,9 +149,6 @@ Parameters::Parameters() {//initalize parameters info
     parArray.push_back(new ParameterInfoScalar <string> (-1, -1, "sjdbGTFtagExonParentTranscript", &sjdbGTFtagExonParentTranscript)); 
     parArray.push_back(new ParameterInfoScalar <uint>   (-1, -1, "sjdbOverhang", &sjdbOverhang));
     parArray.push_back(new ParameterInfoScalar <int>    (-1, -1, "sjdbScore", &sjdbScore));
-    
-    //quant
-    parArray.push_back(new ParameterInfoVector <string> (-1, -1, "quantMode", &quantMode));
     
     //SW parameters
     parArray.push_back(new ParameterInfoScalar <uint> (-1, -1, "swMode", &swMode));
@@ -208,14 +188,6 @@ void Parameters::inputParameters (int argInN, char* argIn[]) {//input parameters
         commandLine += string(argIn[0]);
         for (int iarg=1; iarg<argInN; iarg++) {
             string oneArg=string(argIn[iarg]);
-            
-            if (oneArg=="--version") {//print version and exit
-                std::cout << SVN_VERSION_COMPILED;
-                inOut->logMain << "STAR svn revision compiled=" << SVN_VERSION_COMPILED << endl;
-//                 inOut->logMain << "--version on command line, printed version, EXITING"<<endl;
-                exit(0);
-            };
-            
             if (oneArg.at(0)!='-' || oneArg.at(1)!='-') {
                 if (oneArg.find_first_of(" \t")!=std::string::npos) {//there is white space in the argument, put "" around
                     oneArg ='\"'  + oneArg +'\"';
@@ -347,74 +319,20 @@ void Parameters::inputParameters (int argInN, char* argIn[]) {//input parameters
     
     
 ////////////////////////////////////////////////////// Calculate and check parameters
-    iReadAll=0;
-    if (outTmpDir=="-") {
-        outFileTmp=outFileNamePrefix +"_STARtmp/";
-        sysRemoveDir (outFileTmp);        
-    } else {
-        outFileTmp=outTmpDir;
-    };
-    
-    if (mkdir (outFileTmp.c_str(),S_IRWXU)!=0) {
-        ostringstream errOut;
-        errOut <<"EXITING because of fatal ERROR: could not make temporary directory: "<< outFileTmp<<"\n";
-        errOut <<"SOLUTION: (i) please check the path and writing permissions \n (ii) if you specified --outTmpDir, and this directory exists - please remove it before running STAR\n"<<flush;
-        exitWithError(errOut.str(), std::cerr, inOut->logMain, EXIT_CODE_PARAMETER, *this);                                    
-    };
-    
-    //threaded or not
-    g_threadChunks.threadBool=(runThreadN>1);
+    outFileTmp=outFileNamePrefix +"_tmp/";
+    sysRemoveDir (outFileTmp);
+    mkdir (outFileTmp.c_str(),S_IRWXU);
     
     if (runMode=="alignReads") inOut->logProgress.open((outFileNamePrefix + "Log.progress.out").c_str());
 
-    outBAMcompression=-1;//TODO make this input parameter
-
     if (outStd=="Log") {
         if (runMode=="alignReads" && outSAMmode != "None") {//open SAM file and write header
-            if (outSAMtype.at(0)=="BAM") {
-                outSAMbool=false;
-                outBAMunsorted=false;
-                outBAMcoord=false;
-                for (uint32 ii=1; ii<outSAMtype.size(); ii++) {
-                    if (outSAMtype.at(ii)=="Unsorted") {
-                        outBAMunsorted=true;
-                    } else if (outSAMtype.at(ii)=="SortedByCoordinate") {
-                        outBAMcoord=true;
-                    } else {
-                        ostringstream errOut;
-                        errOut <<"EXITING because of fatal input ERROR: unknown value for the word " <<ii+1<<" of outSAMtype: "<< outSAMtype.at(ii) <<"\n";
-                        errOut <<"SOLUTION: re-run STAR with one of the allowed values of outSAMtype: Unsorted or SortedByCoordinate\n"<<flush;
-                        exitWithError(errOut.str(), std::cerr, inOut->logMain, EXIT_CODE_PARAMETER, *this);                                    
-                    };
-                };
-                //TODO check for conflicts
-                if (outBAMunsorted) {
-                    inOut->outBAMfileUnsorted = bgzf_open((outFileNamePrefix + "Aligned.out.bam").c_str(),("w"+to_string((long long) outBAMcompression)).c_str());
-                };
-                if (outBAMcoord) {
-                    outBAMfileCoordName=outFileNamePrefix + "Aligned.sortedByCoord.out.bam";
-                    inOut->outBAMfileCoord = bgzf_open(outBAMfileCoordName.c_str(),("w"+to_string((long long) outBAMcompression)).c_str());
-                    outBAMcoordNbins=max(runThreadN*3,10);
-                    outBAMsortTmpDir=outFileTmp+"/BAMsort/";
-                    mkdir(outBAMsortTmpDir.c_str(),S_IRWXU);  
-                };                
-            } else if (outSAMtype.at(0)=="SAM") {
-                outSAMbool=true;
-                inOut->outSAMfile.open((outFileNamePrefix + "Aligned.out.sam").c_str());
-            } else if (outSAMtype.at(0)=="None") {
-                //nothin to do, all flags are already false                
-            } else {
-                ostringstream errOut;
-                errOut <<"EXITING because of fatal input ERROR: unknown value for the first word of outSAMtype: "<< outSAMtype.at(0) <<"\n";
-                errOut <<"SOLUTION: re-run STAR with one of the allowed values of outSAMtype: BAM or SAM \n"<<flush;
-                exitWithError(errOut.str(), std::cerr, inOut->logMain, EXIT_CODE_PARAMETER, *this);                
-            };
+            inOut->outSAMfile.open((outFileNamePrefix + "Aligned.out.sam").c_str());
             inOut->outSAM = & inOut->outSAMfile;
         };
     } else if (outStd=="SAM") {
         inOut->outSAM = & std::cout;
     };
-
     
     //versions
     for (uint ii=0;ii<2;ii++) {
@@ -453,33 +371,7 @@ void Parameters::inputParameters (int argInN, char* argIn[]) {//input parameters
     } else if (limitGenomeGenerateRAM>1000000000000) {//
         inOut->logMain <<"WARNING: specified limitGenomeGenerateRAM="<<limitGenomeGenerateRAM<<" bytes appears to be too large, if you do not have enough memory the code will crash!\n"<<flush;
     };
-    
-    
-    {//read groups
-        if (outSAMattrRGline.at(0)!="-") {
-            string linefull;
-            for (uint ii=0;ii<outSAMattrRGline.size(); ii++) {//concatenate into one line
-                linefull+="\t" + outSAMattrRGline.at(ii);
-            };
-            size_t pos=0;
-            do {//cycle over multiple files line by comma
-                pos = linefull.find(',');
-                string lineone=linefull.substr(0, pos);
-                linefull.erase(0, pos + 1);
-                
-                lineone.erase(0,lineone.find_first_not_of(" \t"));
-                outSAMattrRGlineSplit.push_back( lineone );
-                if (lineone.substr(0,3)!="ID:") {
-                    ostringstream errOut;
-                    errOut <<"EXITING because of FATAL INPUT ERROR: the first word of a line from --outSAMattrRGline="<<lineone<<" does not start with ID:xxx read group identifier\n";
-                    errOut <<"SOLUTION: re-run STAR with all lines in --outSAMattrRGline starting with ID:xxx\n";
-                    exitWithError(errOut.str(), std::cerr, inOut->logMain, EXIT_CODE_PARAMETER, *this);
-                };   
-                outSAMattrRG.push_back(lineone.substr(3,lineone.find("\t")-3));
-            } while (pos!= string::npos);
-        };    
-    };
-    
+            
     readNmates=readFilesIn.size(); //for now the number of mates is defined by the number of input files
     if (runMode=="alignReads" && genomeLoad!="Remove" && genomeLoad!="LoadAndExit") {//open reads files to check if they are present
         
@@ -495,99 +387,47 @@ void Parameters::inputParameters (int argInN, char* argIn[]) {//input parameters
                 inOut->readIn[ii].open(readFilesIn.at(ii).c_str()); //try to open the Sequences file right away, exit if failed
                 if (inOut->readIn[ii].fail()) {
                     ostringstream errOut;
-                    errOut <<"EXITING because of fatal input ERROR: could not open readFilesIn=" << readFilesIn.at(ii) <<"\n";
+                    errOut <<"EXITING because of fatal input ERROR: could not open readInFile=" << readFilesIn.at(ii) <<"\n";
                     exitWithError(errOut.str(), std::cerr, inOut->logMain, EXIT_CODE_PARAMETER, *this);                
                 };  
             };    
         } else {//create fifo files, execute pre-processing command
             
-             vector<string> readsCommandFileName;
-
-             readFilesNames.resize(readNmates); 
-
-             for (uint imate=0;imate<readNmates;imate++) {//open readIn files
+            for (uint ii=0;ii<readNmates;ii++) {//open readIn files
                 ostringstream sysCom;
-                sysCom << outFileTmp <<"tmp.fifo.read"<<imate+1;
+                sysCom << outFileTmp <<"tmp.fifo.read"<<ii+1;
                 readFilesInTmp.push_back(sysCom.str());
-                remove(readFilesInTmp.at(imate).c_str());                
-                mkfifo(readFilesInTmp.at(imate).c_str(), S_IRUSR | S_IWUSR );
-                
-                inOut->logMain << "Input read files for mate "<< imate+1 <<", from input string " << readFilesIn.at(imate) <<endl;
-                
-                readsCommandFileName.push_back(outFileTmp+"/readsCommand_read" + to_string(imate+1));
-                ofstream readsCommandFile( readsCommandFileName.at(imate).c_str());
-                
-                string readFilesInString(readFilesIn.at(imate));
-                size_t pos=0;
-                readFilesN=0;
-                do {//cycle over multiple files separated by comma
-                    pos = readFilesInString.find(',');
-                    string file1 = readFilesInString.substr(0, pos);
-                    readFilesInString.erase(0, pos + 1);
-                    readFilesNames.at(imate).push_back(file1);
-                    inOut->logMain <<file1<<endl;
-                    
-                    readsCommandFile << "echo FILE " <<readFilesN << " > " << readFilesInTmp.at(imate) << "\n";
-                    readsCommandFile << readFilesCommandString << "   \"" << file1  <<"\"\n";
-                    ++readFilesN;//only increase file count for one mate
-                    
-                } while (pos!= string::npos);
-                                
-                readsCommandFile.close();
-                chmod(readsCommandFileName.at(imate).c_str(),S_IXUSR | S_IRUSR | S_IWUSR);
-                system((readsCommandFileName.at(imate) + " > " + readFilesInTmp.at(imate) + " & ").c_str());
-                inOut->readIn[imate].open(readFilesInTmp.at(imate).c_str());
-                
-//                 stringSubstituteAll(readFilesInString,",","\" \"");
-//                 string systemString=readFilesCommandString + "   \"" + readFilesInString + "\" > "  + readFilesInTmp.at(ii) + " & ";
-//                 system(systemString.c_str());                
-            };
-            if (readNmates==2 && readFilesNames.at(0).size() != readFilesNames.at(1).size()) {
-                ostringstream errOut;
-                errOut <<"EXITING: because of fatal INPUT ERROR: number of input files for mate1: "<<readFilesNames.at(0).size()  << " is not equal to that for mate2: "<< readFilesNames.at(1).size() <<"\n";
-                errOut <<"Make sure that the number of files in --readFilesIn is the same for both mates\n";
-                exitWithError(errOut.str(), std::cerr, inOut->logMain, EXIT_CODE_PARAMETER, *this);                
-            };
-
-            if (outSAMattrRG.size()>1 && outSAMattrRG.size()!=readFilesN) {
-                ostringstream errOut;
-                errOut <<"EXITING: because of fatal INPUT ERROR: number of input read files: "<<readFilesN << " does not agree with number of read group RG entries: "<< outSAMattrRG.size() <<"\n";
-                errOut <<"Make sure that the number of RG lines in --outSAMattrRGline is equal to either 1, or the number of input read files in --readFilesIn\n";
-                exitWithError(errOut.str(), std::cerr, inOut->logMain, EXIT_CODE_PARAMETER, *this);                
-            } else if (outSAMattrRG.size()==1) {//use the same read group for all files              
-                for (uint32 ifile=1;ifile<readFilesN;ifile++) {
-                    outSAMattrRG.push_back(outSAMattrRG.at(0));
-                };
+                remove(readFilesInTmp.at(ii).c_str());                
+                mkfifo(readFilesInTmp.at(ii).c_str(), S_IRUSR | S_IWUSR );
+                string readFilesInString(readFilesIn.at(ii));
+                stringSubstituteAll(readFilesInString,",","\" \"");
+                string systemString=readFilesCommandString + "   \"" + readFilesInString + "\" > "  + readFilesInTmp.at(ii) + " & ";
+                system(systemString.c_str());                
+                inOut->readIn[ii].open(readFilesInTmp.at(ii).c_str());
             };
         };
-        
-        
-        readFilesIndex=0;
         
         //check sizes of the mate files, if not the same, assume mates are not the same length
         if (readNmates==1) {
             readMatesEqualLengths=true;
         } else if (readNmates > 2){
-            ostringstream errOut;
-            errOut <<"EXITING: because of fatal input ERROR: number of read mates files > 2: " <<readNmates << "\n";
-            errOut <<"SOLUTION:specify only one or two files in the --readFilesIn option. If file names contain spaces, use quotes: \"file name\"\n";
-            exitWithError(errOut.str(), std::cerr, inOut->logMain, EXIT_CODE_PARAMETER, *this);                
+            inOut->logMain <<"EXITING: because of fatal input ERROR: number of read mates files > 2\n" <<flush;
+            exit(1);
         } else if (readMatesLengthsIn=="Equal") {
             readMatesEqualLengths=true;
         } else if (readMatesLengthsIn=="NotEqual") {
             readMatesEqualLengths=false;
         } else {
-            ostringstream errOut;
-            errOut <<"EXITING because of FATAL input ERROR: the value of the parameter readMatesLengthsIn=" << readMatesLengthsIn <<" is not among the allowed values: Equal or NotEqual\n";
-            errOut <<"SOLUTION: specify one of the allowed values: Equal or NotEqual\n";
-            exitWithError(errOut.str(), std::cerr, inOut->logMain, EXIT_CODE_PARAMETER, *this);                
+            inOut->logMain << "EXITING because of FATAL INPUT ERROR: the value of the parameter readMatesLengthsIn=" << readMatesLengthsIn <<" is not among the allowed values: Equal or NotEqual\n"<<flush;
+            inOut->logMain << "Solution: restart STAR with correct parameter values\n"<<flush;
+            exit(1);
         };
 
         if ( runMode=="alignReads" && outReadsUnmapped=="Fastx" ) {//open unmapped reads file
-            for (uint imate=0;imate<readNmates;imate++) {
+            for (uint ii=0;ii<readNmates;ii++) {
                 ostringstream ff;
-                ff << outFileNamePrefix << "Unmapped.out.mate" << imate+1;
-                inOut->outUnmappedReadsStream[imate].open(ff.str().c_str());
+                ff << outFileNamePrefix << "Unmapped.out.mate" << ii+1;
+                inOut->outUnmappedReadsStream[ii].open(ff.str().c_str());
             };
         };        
         
@@ -604,17 +444,10 @@ void Parameters::inputParameters (int argInN, char* argIn[]) {//input parameters
         };
     };
     
-    if (outSAMmapqUnique<0 || outSAMmapqUnique>255) {
-            ostringstream errOut;
-            errOut <<"EXITING because of FATAL input ERROR: out of range value for outSAMmapqUnique=" << outSAMmapqUnique <<"\n";
-            errOut <<"SOLUTION: specify outSAMmapqUnique withing the range of 0 to 255\n";
-            exitWithError(errOut.str(), std::cerr, inOut->logMain, EXIT_CODE_PARAMETER, *this);                        
-    };
-    
-    // in/out buffers
+    //in/out buffers
     #define BUFFER_InSizeFraction 0.5
     chunkInSizeBytesArray=(uint) int((limitIObufferSize-limitOutSJcollapsed*Junction::dataSize)*BUFFER_InSizeFraction)/2;
-    chunkOutBAMsizeBytes= (uint) int((1.0/BUFFER_InSizeFraction-1.0)*chunkInSizeBytesArray*2.0);
+    chunkOutSAMsizeBytes= (uint) int((1.0/BUFFER_InSizeFraction-1.0)*chunkInSizeBytesArray*2.0);
     chunkInSizeBytes=chunkInSizeBytesArray-2*(DEF_readSeqLengthMax+1)-2*DEF_readNameLengthMax;//to prevent overflow
     
     //basic trimming
@@ -625,115 +458,14 @@ void Parameters::inputParameters (int argInN, char* argIn[]) {//input parameters
     //adapter clipping
     if (clip3pAdapterSeq.size()==1 && readNmates==2) clip3pAdapterSeq.push_back(clip3pAdapterSeq[0]);    
     if (clip3pAdapterMMp.size()==1 && readNmates==2) clip3pAdapterMMp.push_back(clip3pAdapterMMp[0]); 
-    for (uint imate=0;imate<readNmates;imate++) {
-        if (clip3pAdapterSeq.at(imate).at(0)=='-') {// no clipping
-            clip3pAdapterSeq.at(imate).assign(""); 
+    for (uint ii=0;ii<readNmates;ii++) {
+        if (clip3pAdapterSeq.at(ii).at(0)=='-') {// no clipping
+            clip3pAdapterSeq.at(ii).assign(""); 
         } else {//clipping
-            clip3pAdapterSeqNum[imate]=new char [clip3pAdapterSeq.at(imate).length()];
-            convertNucleotidesToNumbers(clip3pAdapterSeq.at(imate).data(),clip3pAdapterSeqNum[imate],clip3pAdapterSeq.at(imate).length());
+            clip3pAdapterSeqNum[ii]=new char [clip3pAdapterSeq.at(ii).length()];
+            convertNucleotidesToNumbers(clip3pAdapterSeq.at(ii).data(),clip3pAdapterSeqNum[ii],clip3pAdapterSeq.at(ii).length());
             //inOut->fastaOutSeqs.open("Seqs.out.fasta");
         };
-    };
-        
-    //outSAMattributes
-    
-    
-    outSAMattrPresent.NH=false;//TODO re-write as class with constructor?
-    outSAMattrPresent.HI=false;
-    outSAMattrPresent.AS=false;
-    outSAMattrPresent.NM=false;
-    outSAMattrPresent.MD=false;
-    outSAMattrPresent.nM=false;
-    outSAMattrPresent.jM=false;
-    outSAMattrPresent.jI=false;
-    outSAMattrPresent.RG=false;    
-    outSAMattrPresent.XS=false;
-    
-    //for quant SAM output only NH and HI flags
-    outSAMattrPresentQuant=outSAMattrPresent;
-    outSAMattrPresent.NH=true;
-    outSAMattrPresent.NH=true;
-    outSAMattrOrderQuant.push_back(ATTR_NH);
-    outSAMattrOrderQuant.push_back(ATTR_HI);
-            
-    vector<string> vAttr1;
-    if (outSAMattributes.at(0)=="None") {
-    } else if (outSAMattributes.at(0)=="All"){
-        vAttr1={"NH","HI","AS","nM","NM","MD","jM","jI"};
-    } else if (outSAMattributes.at(0)=="Standard"){
-        vAttr1={"NH","HI","AS","nM"};        
-    } else {
-        vAttr1=outSAMattributes;
-    };
-   
-    for (int ii=0;ii<vAttr1.size();ii++) {
-        if        (vAttr1.at(ii)== "NH") {
-            outSAMattrOrder.push_back(ATTR_NH);
-            outSAMattrPresent.NH=true;
-        } else if (vAttr1.at(ii)== "HI") {
-            outSAMattrOrder.push_back(ATTR_HI);
-            outSAMattrPresent.HI=true;            
-        } else if (vAttr1.at(ii)== "AS") {
-            outSAMattrOrder.push_back(ATTR_AS);
-            outSAMattrPresent.AS=true;            
-        } else if (vAttr1.at(ii)== "NM") {
-            outSAMattrOrder.push_back(ATTR_NM); 
-            outSAMattrPresent.NM=true;            
-        } else if (vAttr1.at(ii)== "MD") {
-            outSAMattrOrder.push_back(ATTR_MD); 
-            outSAMattrPresent.MD=true;            
-        } else if (vAttr1.at(ii)== "nM") {
-            outSAMattrOrder.push_back(ATTR_nM); 
-            outSAMattrPresent.nM=true;            
-        } else if (vAttr1.at(ii)== "jM") {
-            outSAMattrOrder.push_back(ATTR_jM); 
-            outSAMattrPresent.jM=true;                        
-        } else if (vAttr1.at(ii)== "jI") {
-            outSAMattrOrder.push_back(ATTR_jI);
-            outSAMattrPresent.jI=true;
-        } else if (vAttr1.at(ii)== "RG") {
-            outSAMattrOrder.push_back(ATTR_RG);
-            outSAMattrPresent.RG=true;             
-        } else if (vAttr1.at(ii)== "XS") {
-            outSAMattrOrder.push_back(ATTR_XS);
-            outSAMattrPresent.XS=true;            
-            if (outSAMstrandField!="intronMotif") {
-                inOut->logMain << "WARNING --outSAMattributes contains XS, therefore STAR will use --outSAMstrandField intronMotif" <<endl;
-                outSAMstrandField="intronMotif";
-            };
-        } else {
-            ostringstream errOut;
-            errOut <<"EXITING because of FATAL INPUT ERROR: unknown/unimplemented SAM atrribute (tag): "<<vAttr1.at(ii) <<"\n";
-            errOut <<"SOLUTION: re-run STAR with --outSAMattributes that contains only implemented attributes\n";
-            exitWithError(errOut.str(), std::cerr, inOut->logMain, EXIT_CODE_PARAMETER, *this);
-        };
-    };
-    
-    if (outSAMattrRG.size()>0 && !outSAMattrPresent.RG) {
-        outSAMattrOrder.push_back(ATTR_RG);
-        inOut->logMain << "WARNING --outSAMattrRG defines a read group, therefore STAR will output RG attribute" <<endl;
-    } else if (outSAMattrRG.size()==0 && outSAMattrPresent.RG) {
-            ostringstream errOut;
-            errOut <<"EXITING because of FATAL INPUT ERROR: --outSAMattributes contains RG tag, but --outSAMattrRGline is not set\n";
-            errOut <<"SOLUTION: re-run STAR with a valid read group parameter --outSAMattrRGline\n";
-            exitWithError(errOut.str(), std::cerr, inOut->logMain, EXIT_CODE_PARAMETER, *this);        
-    };
-    
-    if (outSAMstrandField=="intronMotif" && !outSAMattrPresent.XS) {
-        outSAMattrOrder.push_back(ATTR_XS);
-        inOut->logMain << "WARNING --outSAMstrandField=intronMotif, therefore STAR will output XS attribute" <<endl;
-    };    
-    
-    outFilterMismatchNoverLmax1=outFilterMismatchNoverLmax;
-    if (alignEndsType=="EndToEnd") {
-        outFilterMismatchNoverLmax1=-1;
-    } else if (alignEndsType=="Local") {
-        //nothing to do for now
-    } else {
-        ostringstream errOut;
-        errOut <<"EXITING because of FATAL INPUT ERROR: unknown/unimplemented value for --alignEndsType: "<<alignEndsType <<"\n";
-        errOut <<"SOLUTION: re-run STAR with --alignEndsType Local or EndToEnd\n";
-        exitWithError(errOut.str(), std::cerr, inOut->logMain, EXIT_CODE_PARAMETER, *this);
     };
     
 //     #ifdef COMPILE_NO_SHM
@@ -750,56 +482,6 @@ void Parameters::inputParameters (int argInN, char* argIn[]) {//input parameters
             inOut->outLocalChains.open((outFileNamePrefix + "LocalChains.out.tab").c_str());
     #endif
     
-//     genomeNumToNT={'A','C','G','T','N'};
-    strcpy(genomeNumToNT,"ACGTN");
-    
-    if (genomeLoad!="LoadAndKeep" && genomeLoad!="LoadAndRemove" && genomeLoad!="Remove" && genomeLoad!="LoadAndExit" && genomeLoad!="NoSharedMemory") {// find shared memory fragment
-        ostringstream errOut;
-        errOut << "EXITING because of FATAL INPUT ERROR: --genomeLoad=" << genomeLoad << "\n" <<flush;
-        errOut << "SOLUTION: use one of the allowed values of --genomeLoad : NoSharedMemory,LoadAndKeep,LoadAndRemove,LoadAndExit,Remove.\n" <<flush;     
-        exitWithError(errOut.str(),std::cerr, inOut->logMain, EXIT_CODE_PARAMETER, *this);
-    };
-    
-    //quantification parameters
-    quantModeI=0;
-    if (quantMode.at(0) != "-") {
-        for (uint32 ii=0; ii<quantMode.size(); ii++) {
-            if (quantMode.at(ii)=="TranscriptomeSAM") {
-                quantModeI = quantModeI | PAR_quantModeI_TranscritomeSAM;   
-                inOut->outQuantBAMfile=bgzf_open((outFileNamePrefix + "Aligned.toTranscriptome.out.bam").c_str(),("w"+to_string((long long) outBAMcompression)).c_str());
-            } else {
-                ostringstream errOut;
-                errOut << "EXITING because of FATAL INPUT ERROR: unrecognized option in --quantMode=" << quantMode.at(ii) << "\n";
-                errOut << "SOLUTION: use one of the allowed values of --quantMode : TranscriptomeSAM or - .\n";     
-                exitWithError(errOut.str(),std::cerr, inOut->logMain, EXIT_CODE_PARAMETER, *this);
-            };
-        };
-    };
-    
-    //wigOut parameters
-
-    if (outWigType.at(0)=="None") {
-        outWigFlags.yes=false;
-    } else if (outWigType.at(0)=="bedGraph") {
-        outWigFlags.yes=true;
-    } else {
-        ostringstream errOut;
-        errOut << "EXITING because of FATAL INPUT ERROR: unrecognized option in --outWigType=" << outWigType.at(0) << "\n";
-        errOut << "SOLUTION: use one of the allowed values of --outWigType : 'None' or 'bedGraph' \n";     
-        exitWithError(errOut.str(),std::cerr, inOut->logMain, EXIT_CODE_PARAMETER, *this);
-    };
-    if (outWigStrand.at(0)=="Stranded") {
-        outWigFlags.strand=true;
-    } else if (outWigType.at(0)=="bedGraph") {
-        outWigFlags.strand=false;
-    } else {
-        ostringstream errOut;
-        errOut << "EXITING because of FATAL INPUT ERROR: unrecognized option in --outWigStrand=" << outWigStrand.at(0) << "\n";
-        errOut << "SOLUTION: use one of the allowed values of --outWigStrand : 'Stranded' or 'Unstranded' \n";     
-        exitWithError(errOut.str(),std::cerr, inOut->logMain, EXIT_CODE_PARAMETER, *this);
-    };    
-        
-            
     inOut->logMain << "Finished loading and checking parameters\n" <<flush;
 };
 
