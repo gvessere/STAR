@@ -28,7 +28,7 @@ const char * Genome::GetPosixObjectKey(key_t shmKey)
 
 int Genome::CreateSharedObject(key_t shmKey, uint64 shmSize)
 {    
-    shmID = 0;
+    int shmID = 0;
     #ifdef POSIX_SHARED_MEM
     shmID=shm_open(Genome::GetPosixObjectKey(shmKey), O_CREAT | O_RDWR, 0666);
     #else
