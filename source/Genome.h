@@ -25,6 +25,7 @@ class Genome {
     char *shmStart;
     char *G1; //pointer -200 of G
     SharedMemory * sharedMemory;
+    void HandleSharedMemoryException(const SharedMemoryException & exc, uint64 shmSize);
     uint OpenStream(string name, ifstream & stream);
 };
 #endif

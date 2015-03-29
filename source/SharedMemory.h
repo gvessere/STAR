@@ -145,6 +145,7 @@ private:
         SharedMemoryException _exception;
 
         int _shmID;
+        int _sharedCounterID;
         void * _mapped;
         size_t * _length;
         sem_t * _sem;
@@ -165,11 +166,12 @@ private:
 
         std::string CounterName();
 
+#ifdef POSIX_SHARED_MEM
         void EnsureCounter();
         void RemoveSharedCounter();
         void SharedUseIncrement();
         void SharedUseDecrement();
-
+#endif
 };
 
 #endif

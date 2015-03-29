@@ -157,44 +157,49 @@ void SharedMemory::MapSharedObjectToMemory()
     struct stat buf = SharedMemory::GetSharedObjectInfo(); 
     size = (size_t) buf.st_size;
     _mapped = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_NORESERVE, _shmID, (off_t) 0);
-#else
-
-    // size is not needed
-    _mapped= shmat(_shmID, NULL, 0);
-#endif
 
     if (_mapped==((void *) -1)) 
         ThrowError(EMAPFAILED, errno);
     
     SharedUseIncrement();
 
-    // set the length field
     _length = (size_t *) _mapped;
-#ifdef POSIX_SHARED_MEM
     *_length = size;
+#else
+    _mapped= shmat(_shmID, NULL, 0);
+
+    if (_mapped==((void *) -1)) 
+        ThrowError(EMAPFAILED, errno);
+    
+    _length = (size_t *) _mapped;
 #endif
 }
 
 void SharedMemory::Close()
 {
+    #ifdef POSIX_SHARED_MEM
     if (_mapped != NULL)
     {
-    #ifdef POSIX_SHARED_MEM
         int ret = munmap(_mapped, (size_t) *_length);
         if (ret == -1)
             ThrowError(EMAPFAILED, errno);
-    #endif
         _mapped = NULL;
         SharedUseDecrement();
     }
 
-    #ifdef POSIX_SHARED_MEM
     if (_shmID != -1)
     {
         int err = close(_shmID);
         _shmID=-1;
         if (err == -1)
             ThrowError(ECLOSE, errno);
+    }
+
+    #else
+    if (_mapped != NULL)
+    {
+        shmdt(_mapped);
+        _mapped = NULL;
     }
     #endif
 }
@@ -222,9 +227,12 @@ void SharedMemory::Clean()
 {
     Close();
     Unlink();
+    #ifdef POSIX_SHARED_MEM
     RemoveSharedCounter();
+    #endif
 }
 
+#ifdef POSIX_SHARED_MEM
 void SharedMemory::EnsureCounter()
 {
     if (_sem!= NULL)
@@ -271,9 +279,13 @@ void SharedMemory::SharedUseDecrement()
         ThrowError(ECOUNTERDEC, errno);
     cerr << "decremented shared memory fragment usage to " << SharedObjectsUseCount() << endl;
 }
+#endif
 
 int SharedMemory::SharedObjectsUseCount()
 {
+    _shmID=shmget(_key, toReserve, IPC_CREAT | IPC_EXCL | SHM_NORESERVE | 0666); //        _shmID = shmget(shmKey, shmSize, IPC_CREAT | SHM_NORESERVE | SHM_HUGETLB | 0666);
+    
+    #ifdef POSIX_SHARED_MEM
     SharedMemory::EnsureCounter();
     int sval=-1;
     int ret = sem_getvalue(_sem, &sval);
@@ -282,4 +294,16 @@ int SharedMemory::SharedObjectsUseCount()
         ThrowError(ECOUNTERUSE, errno);
 
     return sval;
+    #else
+    if (_shmID != -1)
+    {
+        struct shmid_ds shmStat;
+        shmctl(_shmID,IPC_STAT,&shmStat);
+        return shmStat.shm_nattch;
+    }
+    else
+        return -1;
+    #endif
 }
+
+

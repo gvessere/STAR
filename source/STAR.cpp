@@ -22,8 +22,12 @@
 #include "mapThreadsSpawn.h"
 #include "ErrorWarning.h"
 
+#include "SignalHandlers.h"
+#include "GenomeCleanup.h"
+
 #include "htslib/htslib/sam.h"
 extern int bam_cat(int nfn, char * const *fn, const bam_hdr_t *h, const char* outbam);
+
 
 int main(int argInN, char* argIn[]) {
    
@@ -47,6 +51,8 @@ int main(int argInN, char* argIn[]) {
     };
     
     Genome mainGenome (P);
+    ConfigureSignalHandlers(GetGenomeCleanupFunction(mainGenome));
+
     mainGenome.genomeLoad();
 
     if (P->genomeLoad=="LoadAndExit" ||
@@ -258,6 +264,7 @@ int main(int argInN, char* argIn[]) {
         
     //no need for genome anymore, free the memory
 //     mainGenome.~Genome(); //need explicit call because of the delete P->inOut below
+    RemoveSignalHandlers();
     mainGenome.freeMemory();
     
     if (P->runThreadN>1 && P->outSAMorder=="PairedKeepInputOrder") {//concatenate Aligned.* files
